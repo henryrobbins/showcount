@@ -12,8 +12,8 @@ body {
 }
 
 @font-face {
-  font-family: 'instantzenexpand';
-  src: url('/fonts/instantzenexpand.ttf') format('truetype');
+  font-family: 'bocklin';
+  src: url('/fonts/bocklin.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
