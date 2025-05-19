@@ -11,10 +11,12 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@clerk/remix": "^4.5.19",
     "@remix-run/node": "^2.16.5",
     "@remix-run/react": "^2.16.5",
     "@remix-run/serve": "^2.16.5",
     "@supabase/auth-helpers-remix": "^0.4.0",
+    "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/supabase-js": "^2.49.4",
     "isbot": "^4.1.0",
     "react": "^18.2.0",

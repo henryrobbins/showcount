@@ -3,3 +3,7 @@ enabled = true
 # The order in which the seed SQL files are executed is important, otherwise
 # foreign key constraint will be violated.
 sql_paths = ['./seeds/auth.sql', './seeds/artists.sql', './seeds/venues.sql', './seeds/shows.sql', './seeds/show_artists.sql', './seeds/user_shows.sql']
+
+# [auth.third_party.clerk]
+# enabled = true
+# domain = "https://calm-duckling-50.clerk.accounts.dev"

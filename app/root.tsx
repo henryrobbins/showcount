@@ -5,9 +5,15 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import type { LoaderFunction } from "@remix-run/node";
 import type { LinksFunction } from "@remix-run/node";
+import { rootAuthLoader } from "@clerk/remix/ssr.server";
+import { ClerkApp } from "@clerk/remix";
 
 import "./tailwind.css";
+import Navbar from "./components/NavBar";
+
+export const loader: LoaderFunction = (args) => rootAuthLoader(args);
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -40,6 +46,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
-  return <Outlet />;
+function App() {
+  return (
+    <html lang="en">
+      <head>{/* Meta tags, etc. */}</head>
+      <body>
+        <Navbar />
+        <Outlet />
+      </body>
+    </html>
+  );
 }
+
+export default ClerkApp(App);
