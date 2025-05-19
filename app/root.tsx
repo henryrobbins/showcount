@@ -5,6 +5,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import { HeroUIProvider } from "@heroui/react";
 import type { LinksFunction } from "@remix-run/node";
 
 import "./tailwind.css";
@@ -41,5 +42,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <HeroUIProvider>
+      <Outlet />
+    </HeroUIProvider>
+  );
 }
