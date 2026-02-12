@@ -2,7 +2,7 @@
 
 # Stage 1: Dependencies
 FROM node:22-alpine AS deps
-RUN apk add --no-cache libc6-compat curl unzip
+RUN apk add --no-cache libc6-compat curl unzip bash
 
 # Install bun
 RUN curl -fsSL https://bun.sh/install | bash
@@ -18,7 +18,7 @@ RUN bun install --frozen-lockfile
 
 # Stage 2: Builder
 FROM node:22-alpine AS builder
-RUN apk add --no-cache curl unzip
+RUN apk add --no-cache curl unzip bash
 
 # Install bun
 RUN curl -fsSL https://bun.sh/install | bash
