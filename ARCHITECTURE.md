@@ -12,7 +12,7 @@
 - **Language:** TypeScript
 - **UI Framework:** Shadcn UI
 - **Package Management:** bun
-- **Styling:** Tailwind CSS v4
+- **Styling:** Tailwind CSS v3
 - **Node Version:** >=22
 - **Database Access:** Supabase (direct access from Next.js)
 
