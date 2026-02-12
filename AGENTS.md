@@ -22,7 +22,7 @@ It is crucial to have appropriate development tools to facilitate running the ap
 ## Repository Structure
 
 ```
-├── web/           # Next.js frontend + API routes
+├── app/           # Next.js frontend + API routes
 ├── services/      # Fast API backend services
 └── infra/         # Terraform Infrastructure (production only, local state)
 ```
