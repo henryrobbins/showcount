@@ -72,12 +72,20 @@ To run the application in a Docker container:
 
    The application will be available at `http://localhost:3000`
 
+## Deployment
+
+The application is deployed on Vercel and automatically deploys from the `main` branch.
+
+- **Production URL**: [https://showcount.vercel.app](https://showcount.vercel.app) _(available after first deployment)_
+
+Any commits pushed to the `main` branch will trigger an automatic deployment to production.
+
 ## Project Structure
 
 ```
 ├── app/              # Next.js frontend application
 ├── services/         # FastAPI backend services (coming soon)
-├── infra/            # Terraform infrastructure (production only)
+├── infra/            # Terraform infrastructure (Vercel deployment)
 ├── plans/            # Project planning documents
 └── docs/             # Additional documentation
 ```
@@ -105,4 +113,74 @@ To run the application in a Docker container:
 This is an open-source project. Contributors should be able to clone the repository and run the application locally without needing access to production infrastructure secrets.
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
+
+## Infrastructure Setup (For Maintainers)
+
+This section is only for project maintainers who need to manage the deployment infrastructure. Regular contributors do not need to perform these steps.
+
+### Prerequisites
+
+- Terraform installed ([installation guide](https://www.terraform.io/downloads))
+- Vercel account with API token
+- Maintainer access to the project
+
+### Initial Infrastructure Setup
+
+1. **Generate a Vercel API token**:
+   - Log in to Vercel dashboard
+   - Navigate to Settings → Tokens
+   - Create a new token with appropriate permissions
+   - Copy the token (you'll need it in the next steps)
+
+2. **Configure Terraform variables**:
+   ```bash
+   cd infra
+   cp .terraform.tfvars.example .terraform.tfvars
+   ```
+
+3. **Edit `.terraform.tfvars` and add your credentials**:
+   ```hcl
+   vercel_api_token = "your-actual-token-here"
+   # vercel_team_id = "team_xxxxx"  # Uncomment if using team
+   project_name = "showcount"
+   ```
+
+4. **Initialize Terraform**:
+   ```bash
+   terraform init
+   ```
+
+5. **Preview the infrastructure changes**:
+   ```bash
+   terraform plan
+   ```
+
+6. **Apply the infrastructure**:
+   ```bash
+   terraform apply
+   ```
+
+### Connect GitHub Repository
+
+After Terraform creates the Vercel project, you need to manually connect the GitHub repository:
+
+1. Go to the [Vercel dashboard](https://vercel.com/dashboard)
+2. Select the "showcount" project
+3. Navigate to Settings → Git
+4. Click "Connect Git Repository"
+5. Select the repository: `henryrobbins/showcount`
+6. Confirm that `main` is set as the production branch
+7. Confirm that the root directory is set to `app`
+
+### First Deployment
+
+Once the GitHub repository is connected, push to the `main` branch to trigger the first deployment. After the deployment completes, update the production URL in this README.
+
+### Managing Infrastructure
+
+- **View current state**: `terraform show`
+- **Update infrastructure**: Modify `.tf` files, then run `terraform plan` and `terraform apply`
+- **Destroy infrastructure**: `terraform destroy` (use with caution)
+
+**Note**: Terraform state is stored locally in the `/infra` directory. Do not commit `.tfstate` files or `.terraform.tfvars` to the repository.
 
