@@ -15,5 +15,5 @@ plans
 └── todo
 ```
 
-Lastly, a comprehensive backlog is maintained in [BACKLOG](/BACKLOG.md). DO NOT READ THIS FILE UNLESS EXPLICITLY INSTRUCTED!
+Lastly, a comprehensive backlog is maintained in [BACKLOG](/BACKLOG.md). This file contains a running list of all potential feature additions. To avoid polluting the context, DO NOT READ THIS FILE UNLESS EXPLICITLY INSTRUCTED!
 

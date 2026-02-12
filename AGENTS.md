@@ -22,9 +22,9 @@ It is crucial to have appropriate development tools to facilitate running the ap
 ## Repository Structure
 
 ```
-├── app/           # Next.js frontend + API routes (currently empty)
-├── services/      # Fast API backend services (currently empty)
-└── infra/         # Terraform Infrastructure (currently empty)
+├── web/           # Next.js frontend + API routes
+├── services/      # Fast API backend services
+└── infra/         # Terraform Infrastructure (production only, local state)
 ```
 
 ## Architecture
@@ -38,6 +38,10 @@ See [STYLE](/STYLE.md). Ensure this file is read prior to implementation.
 ## UI/UX Design
 
 See [DESIGN](/DESIGN.md). Ensure this file is read prior to planning or implementation of plans that will impact UI/UX.
+
+## Development
+
+See [DEVELOPMENT](/DEVELOPMENT.md). Ensure this file is read for guidance on local development, environment management, and testing.
 
 ## Task Management
 

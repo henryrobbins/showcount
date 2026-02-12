@@ -1,10 +1,10 @@
 # ARCHITECTURE.md
 
-- **Deployment:** Vercel
-- **Infrastructure as Code:** Terraform
-- **Database:** Supabase
+- **Deployment:** Vercel (both web app and backend services)
+- **Infrastructure as Code:** Terraform (local state, production environment)
+- **Database:** Supabase (provisioned via Terraform)
 - **User Authentication:** Clerk
-- **Containerization:** Docker
+- **Containerization:** Docker (for web app and backend services, can run individually or together)
 
 ## Web Application
 
@@ -12,8 +12,9 @@
 - **Language:** TypeScript
 - **UI Framework:** Shadcn UI
 - **Package Management:** bun
-- **Styling**: Tailwind CSS v4
-- **Node Version**: >=22
+- **Styling:** Tailwind CSS v4
+- **Node Version:** >=22
+- **Database Access:** Supabase (direct access from Next.js)
 
 ## Backend Services
 

@@ -10,7 +10,32 @@
 
 ## TypeScript
 
-- **Linting/Formatting**: Biome
+- **Linting/Formatting:** Biome
+
+### Naming Conventions
+
+- **Components:** PascalCase (e.g., `UserProfile`, `ShowTable`)
+- **Functions:** camelCase (e.g., `fetchShowData`, `formatDate`)
+- **Files:** Match the component/module name
+
+### Type Definitions
+
+- Prefer `interface` over `type` for object shapes
+- Component files should `export default` at the end of the file
+
+### Import Grouping
+
+Imports should be grouped into three sections (if applicable) at the top of the file: standard library/React, third-party dependencies, and custom.
+
+```typescript
+import { useState, useEffect } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { formatDate } from 'date-fns';
+
+import { fetchShows } from '@/lib/api';
+import { Show } from '@/types/show';
+```
 
 ## Python
 
@@ -24,7 +49,7 @@ MyPy is used for type checking. Always include type hints to avoid type checking
 
 ### Import Grouping
 
-Imports should be groped into three sections (if applicable) at the top of the file: standard library, third-party dependencies, and custom.
+Imports should be grouped into three sections (if applicable) at the top of the file: standard library, third-party dependencies, and custom.
 
 ```python
 import os
