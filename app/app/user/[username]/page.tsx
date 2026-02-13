@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 
 import ShowsTable from '@/components/ShowsTable';
 import { createClient } from '@/lib/supabase/server';
-import type { Show } from '@/types/show';
+import type { UserShowWithDetails } from '@/types/show';
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -29,42 +29,76 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
   const { userId: currentUserId } = await auth();
   const isOwnProfile = currentUserId === user.id;
 
-  // Fetch shows from Supabase with venue data
+  // Fetch user_shows with joined central_shows and venues
   const supabase = await createClient();
-  const { data: shows, error } = await supabase
-    .from('shows')
+  const { data: userShows, error } = await supabase
+    .from('user_shows')
     .select(`
-      *,
-      venues (
-        id,
-        name,
-        city,
-        state,
-        country,
-        latitude,
-        longitude
-      )
+      *
     `)
     .eq('clerk_user_id', user.id)
-    .order('date', { ascending: false });
+    .order('created_at', { ascending: false });
 
-  // Denormalize venue data for backward compatibility
-  const userShows = (shows || []).map((show: any) => {
-    // If show has a venue_id and venues data, use that
-    if (show.venue_id && show.venues) {
-      const venue = Array.isArray(show.venues) ? show.venues[0] : show.venues;
-      return {
-        ...show,
-        venue: venue?.name || show.venue || null,
-        city: venue?.city || show.city || null,
-        state: venue?.state || show.state || null,
-        country: venue?.country || show.country || null,
-        // Remove the nested venues object from the result
-        venues: undefined,
-      } as Show;
+  if (error) {
+    console.error('Error fetching user shows:', error);
+  }
+
+  // Transform the data to UserShowWithDetails format
+  // We need to manually fetch central shows because Supabase doesn't support array joins well
+  const transformedShows: UserShowWithDetails[] = [];
+
+  for (const userShow of (userShows || []) as Array<{
+    id: string;
+    clerk_user_id: string;
+    show_ids: string[];
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+  }>) {
+    if (!userShow.show_ids || userShow.show_ids.length === 0) {
+      continue;
     }
-    // Otherwise use legacy fields
-    return show as Show;
+
+    // Fetch central shows with venue data for this user show
+    const { data: centralShows, error: centralError } = await supabase
+      .from('central_shows')
+      .select(`
+        *,
+        venues:venue_id (*)
+      `)
+      .in('id', userShow.show_ids);
+
+    if (centralError) {
+      console.error('Error fetching central shows:', centralError);
+      continue;
+    }
+
+    // Transform to UserShowWithDetails
+    transformedShows.push({
+      id: userShow.id,
+      clerk_user_id: userShow.clerk_user_id,
+      show_ids: userShow.show_ids,
+      notes: userShow.notes,
+      created_at: userShow.created_at,
+      updated_at: userShow.updated_at,
+      shows: centralShows.map((cs: any) => ({
+        id: cs.id,
+        show_id: cs.show_id,
+        date: cs.date,
+        artist: cs.artist,
+        venue_id: cs.venue_id,
+        created_at: cs.created_at,
+        updated_at: cs.updated_at,
+        venue: cs.venues,
+      })),
+    });
+  }
+
+  // Sort by date (use first show's date)
+  transformedShows.sort((a, b) => {
+    const dateA = a.shows[0]?.date || '';
+    const dateB = b.shows[0]?.date || '';
+    return dateB.localeCompare(dateA);
   });
 
   return (
@@ -75,11 +109,11 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
             {displayName}
           </h1>
           <p className="font-mono text-sm mt-2 text-gray-600">
-            {userShows.length} shows attended
+            {transformedShows.length} shows attended
           </p>
         </div>
 
-        {userShows.length === 0 ? (
+        {transformedShows.length === 0 ? (
           <div className="border border-black p-8 text-center">
             <p className="font-mono text-lg mb-4">
               {isOwnProfile
@@ -116,7 +150,7 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
                 </Link>
               </div>
             )}
-            <ShowsTable shows={userShows} />
+            <ShowsTable shows={transformedShows} />
           </>
         )}
       </div>

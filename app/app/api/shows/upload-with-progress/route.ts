@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
+import { getOrCreateCentralShow } from '@/lib/central-shows';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateVenueWithStatus } from '@/lib/venues';
 import type { ShowInsert } from '@/types/show';
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const showsWithVenueIds: any[] = [];
+          const userShowsToInsert: any[] = [];
           
           // Cache venues as we process them to avoid duplicate lookups
           const venueCache = new Map<string, { id: string | null; status: string }>();
@@ -113,17 +114,36 @@ export async function POST(request: Request) {
               }
             }
 
-            // Prepare show for insertion
-            showsWithVenueIds.push({
+            if (!venueId) {
+              // Skip shows without venues
+              continue;
+            }
+
+            // Create central shows for each artist
+            const showIds: string[] = [];
+            for (const artist of show.artists) {
+              const result = await getOrCreateCentralShow({
+                date: show.date,
+                artist,
+                venueId,
+                allowDuplicate: true, // CSV uploads allow duplicates
+              });
+              showIds.push(result.centralShow.id);
+            }
+
+            // Prepare user_show for insertion
+            userShowsToInsert.push({
               clerk_user_id: show.clerk_user_id,
-              date: show.date,
-              artists: show.artists,
-              venue_id: venueId,
+              show_ids: showIds,
+              notes: show.notes || null,
+              // Legacy fields set to null
+              date: null,
+              artists: null,
+              venue_id: null,
               venue: null,
               city: null,
               state: null,
               country: null,
-              notes: show.notes || null,
             });
 
             // Send progress update immediately
@@ -145,11 +165,11 @@ export async function POST(request: Request) {
             );
           }
 
-          // Insert all shows
+          // Insert all user_shows
           const supabase = await createClient();
           const { data, error } = await supabase
-            .from('shows')
-            .insert(showsWithVenueIds as any)
+            .from('user_shows')
+            .insert(userShowsToInsert as any)
             .select();
 
           if (error) {

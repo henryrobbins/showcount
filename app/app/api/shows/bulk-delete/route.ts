@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     let verifiedCount = 0;
     for (const batch of batches) {
       const { data: showsToDelete, error: fetchError } = await supabase
-        .from("shows")
+        .from("user_shows")
         .select("id")
         .in("id", batch)
         .eq("clerk_user_id", userId);
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     let deletedCount = 0;
     for (const batch of batches) {
       const { error, count } = await supabase
-        .from("shows")
+        .from("user_shows")
         .delete({ count: "exact" })
         .in("id", batch)
         .eq("clerk_user_id", userId);

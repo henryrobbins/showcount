@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import type { Show } from "@/types/show";
+import type { UserShowWithDetails } from "@/types/show";
 
 import EditClient from "@/app/edit/EditClient";
 
@@ -13,50 +13,81 @@ async function EditPage() {
     redirect("/sign-in");
   }
 
-  // Fetch user's shows from Supabase with venue data
+  // Fetch user_shows with joined central_shows and venues
   const supabase = await createClient();
-  const { data: shows, error } = await supabase
-    .from("shows")
-    .select(`
-      *,
-      venues (
-        id,
-        name,
-        city,
-        state,
-        country,
-        latitude,
-        longitude
-      )
-    `)
+  const { data: userShows, error } = await supabase
+    .from("user_shows")
+    .select("*")
     .eq("clerk_user_id", userId)
-    .order("date", { ascending: false });
+    .order("created_at", { ascending: false });
 
-  // Denormalize venue data for backward compatibility
-  const userShows = (shows || []).map((show: any) => {
-    // If show has a venue_id and venues data, use that
-    if (show.venue_id && show.venues) {
-      const venue = Array.isArray(show.venues) ? show.venues[0] : show.venues;
-      return {
-        ...show,
-        venue: venue?.name || show.venue || null,
-        city: venue?.city || show.city || null,
-        state: venue?.state || show.state || null,
-        country: venue?.country || show.country || null,
-        // Remove the nested venues object from the result
-        venues: undefined,
-      } as Show;
+  if (error) {
+    console.error('Error fetching user shows:', error);
+  }
+
+  // Transform the data to UserShowWithDetails format
+  const transformedShows: UserShowWithDetails[] = [];
+
+  for (const userShow of (userShows || []) as Array<{
+    id: string;
+    clerk_user_id: string;
+    show_ids: string[];
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+  }>) {
+    if (!userShow.show_ids || userShow.show_ids.length === 0) {
+      continue;
     }
-    // Otherwise use legacy fields
-    return show as Show;
+
+    // Fetch central shows with venue data for this user show
+    const { data: centralShows, error: centralError } = await supabase
+      .from('central_shows')
+      .select(`
+        *,
+        venues:venue_id (*)
+      `)
+      .in('id', userShow.show_ids);
+
+    if (centralError) {
+      console.error('Error fetching central shows:', centralError);
+      continue;
+    }
+
+    // Transform to UserShowWithDetails
+    transformedShows.push({
+      id: userShow.id,
+      clerk_user_id: userShow.clerk_user_id,
+      show_ids: userShow.show_ids,
+      notes: userShow.notes,
+      created_at: userShow.created_at,
+      updated_at: userShow.updated_at,
+      shows: centralShows.map((cs: any) => ({
+        id: cs.id,
+        show_id: cs.show_id,
+        date: cs.date,
+        artist: cs.artist,
+        venue_id: cs.venue_id,
+        created_at: cs.created_at,
+        updated_at: cs.updated_at,
+        venue: cs.venues,
+      })),
+    });
+  }
+
+  // Sort by date (use first show's date)
+  transformedShows.sort((a, b) => {
+    const dateA = a.shows[0]?.date || '';
+    const dateB = b.shows[0]?.date || '';
+    return dateB.localeCompare(dateA);
   });
 
   // If no shows, redirect to upload page
-  if (userShows.length === 0) {
+  if (transformedShows.length === 0) {
     redirect("/upload");
   }
 
-  return <EditClient initialShows={userShows} />;
+  return <EditClient initialShows={transformedShows} />;
 }
 
 export default EditPage;
