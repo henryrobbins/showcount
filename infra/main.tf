@@ -71,7 +71,10 @@ resource "supabase_project" "showcount" {
   name              = "showcount"
   database_password = var.supabase_database_password
   region            = "us-east-1"
-  plan              = "free"
+}
+
+data "supabase_apikeys" "my_keys" {
+  project_ref = supabase_project.showcount.id
 }
 
 # Supabase Environment Variables
@@ -85,7 +88,7 @@ resource "vercel_project_environment_variable" "supabase_url" {
 resource "vercel_project_environment_variable" "supabase_anon_key" {
   project_id = vercel_project.showcount.id
   key        = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-  value      = supabase_project.showcount.anon_key
+  value      = data.supabase_apikeys.my_keys.anon_key
   target     = ["production", "preview"]
   sensitive  = true
 }
