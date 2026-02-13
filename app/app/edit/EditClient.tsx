@@ -9,12 +9,14 @@ import EditShowModal from '@/components/EditShowModal';
 import ShowsTable from '@/components/ShowsTable';
 import { Button } from '@/components/ui/button';
 import type { UserShowWithDetails } from '@/types/show';
+import type { RatingSystemConfig } from '@/types/rating';
 
 interface EditClientProps {
   initialShows: UserShowWithDetails[];
+  ratingSystemConfig: RatingSystemConfig | null;
 }
 
-export default function EditClient({ initialShows }: EditClientProps) {
+export default function EditClient({ initialShows, ratingSystemConfig }: EditClientProps) {
   const router = useRouter();
   const [shows, setShows] = useState<UserShowWithDetails[]>(initialShows);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -118,12 +120,14 @@ export default function EditClient({ initialShows }: EditClientProps) {
           selectedIds={selectedIds}
           onRowClick={handleRowClick}
           onSelectionChange={handleSelectionChange}
+          ratingSystemConfig={ratingSystemConfig}
         />
 
         <AddShowModal
           open={modalState === 'add'}
           onClose={() => setModalState(null)}
           onSuccess={handleSuccess}
+          ratingSystemConfig={ratingSystemConfig}
         />
 
         <EditShowModal
@@ -134,6 +138,7 @@ export default function EditClient({ initialShows }: EditClientProps) {
             setEditingShow(null);
           }}
           onSuccess={handleSuccess}
+          ratingSystemConfig={ratingSystemConfig}
         />
 
         <DeleteConfirmModal

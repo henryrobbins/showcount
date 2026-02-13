@@ -63,6 +63,7 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
     clerk_user_id: string;
     show_ids: string[];
     notes: string | null;
+    rating: string | null;
     created_at: string;
     updated_at: string;
   }>) {
@@ -90,6 +91,7 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
       clerk_user_id: userShow.clerk_user_id,
       show_ids: userShow.show_ids,
       notes: userShow.notes,
+      rating: userShow.rating,
       created_at: userShow.created_at,
       updated_at: userShow.updated_at,
       shows: centralShows.map((cs: any) => ({
@@ -111,6 +113,12 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
     const dateB = b.shows[0]?.date || '';
     return dateB.localeCompare(dateA);
   });
+
+  // Extract rating system config if ratings are enabled
+  const ratingSystemConfig =
+    userProfile?.ratings_enabled && userProfile?.rating_system_config
+      ? userProfile.rating_system_config
+      : null;
 
   return (
     <main className="min-h-screen bg-white text-black py-8">
@@ -160,7 +168,7 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
                 </Link>
               </div>
             )}
-            <ShowsTable shows={transformedShows} />
+            <ShowsTable shows={transformedShows} ratingSystemConfig={ratingSystemConfig} />
           </>
         )}
       </div>

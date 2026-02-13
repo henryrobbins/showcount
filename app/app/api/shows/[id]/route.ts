@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { getOrCreateCentralShow, getCentralShowsByIds } from "@/lib/central-shows";
+import { validateRatingValue } from "@/lib/rating-validation";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateVenue } from "@/lib/venues";
 import type { Database } from "@/types/database";
@@ -19,7 +20,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { date, artists, venue, city, state, country, notes } = body;
+    const { date, artists, venue, city, state, country, notes, rating } = body;
 
     // Validate required fields
     if (!date || !artists || !Array.isArray(artists) || artists.length === 0) {
@@ -40,6 +41,30 @@ export async function PUT(
       if (notes.length > 4096) {
         return NextResponse.json(
           { error: "Notes must not exceed 4096 characters" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate rating if present
+    if (rating !== undefined && rating !== null && rating !== '') {
+      const supabase = await createClient();
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('ratings_enabled, rating_system_config')
+        .eq('clerk_user_id', userId)
+        .single();
+
+      if (!profile?.ratings_enabled) {
+        return NextResponse.json(
+          { error: "Ratings are not enabled for your profile" },
+          { status: 400 }
+        );
+      }
+
+      if (!validateRatingValue(rating, profile.rating_system_config)) {
+        return NextResponse.json(
+          { error: "Invalid rating value for your rating system" },
           { status: 400 }
         );
       }
@@ -113,6 +138,7 @@ export async function PUT(
     const updateData: UserShowUpdate = {
       show_ids: showIds,
       notes: notes || null,
+      rating: rating || null,
       // Legacy fields remain unchanged (will be null for new-style records)
     };
 

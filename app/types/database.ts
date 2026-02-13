@@ -1,3 +1,5 @@
+import type { RatingSystemConfig } from './rating';
+
 export interface Database {
   public: {
     Tables: {
@@ -36,6 +38,7 @@ export interface Database {
           clerk_user_id: string;
           show_ids: string[];
           notes: string | null;
+          rating: string | null;
           created_at: string;
           updated_at: string;
           // Legacy columns (kept for backward compatibility during migration)
@@ -52,6 +55,7 @@ export interface Database {
           clerk_user_id: string;
           show_ids: string[];
           notes?: string | null;
+          rating?: string | null;
           created_at?: string;
           updated_at?: string;
           // Legacy columns
@@ -68,6 +72,7 @@ export interface Database {
           clerk_user_id?: string;
           show_ids?: string[];
           notes?: string | null;
+          rating?: string | null;
           created_at?: string;
           updated_at?: string;
           // Legacy columns
@@ -142,6 +147,13 @@ export interface Database {
           instagram_username: string | null;
           x_username: string | null;
           facebook_username: string | null;
+          ratings_enabled: boolean;
+          rating_system_type:
+            | 'ordered_list'
+            | 'numeric_range'
+            | 'numeric_unbounded'
+            | null;
+          rating_system_config: RatingSystemConfig | null;
           created_at: string;
           updated_at: string;
         };
@@ -159,6 +171,13 @@ export interface Database {
           instagram_username?: string | null;
           x_username?: string | null;
           facebook_username?: string | null;
+          ratings_enabled?: boolean;
+          rating_system_type?:
+            | 'ordered_list'
+            | 'numeric_range'
+            | 'numeric_unbounded'
+            | null;
+          rating_system_config?: RatingSystemConfig | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -176,6 +195,13 @@ export interface Database {
           instagram_username?: string | null;
           x_username?: string | null;
           facebook_username?: string | null;
+          ratings_enabled?: boolean;
+          rating_system_type?:
+            | 'ordered_list'
+            | 'numeric_range'
+            | 'numeric_unbounded'
+            | null;
+          rating_system_config?: RatingSystemConfig | null;
           updated_at?: string;
         };
       };
