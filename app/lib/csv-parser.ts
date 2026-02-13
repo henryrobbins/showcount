@@ -39,6 +39,7 @@ export function validateCSVSchema(rows: CSVRow[]): ValidationResult {
     'state',
     'country',
   ];
+  const optionalHeaders = ['notes'];
   const firstRow = rows[0];
   const headers = Object.keys(firstRow);
 
@@ -67,6 +68,11 @@ export function validateCSVSchema(rows: CSVRow[]): ValidationResult {
 
     if (!row.artist || row.artist.trim() === '') {
       errors.push(`Row ${rowNumber}: Missing required field 'artist'`);
+    }
+
+    // Validate notes length if present
+    if (row.notes && row.notes.length > 4096) {
+      errors.push(`Row ${rowNumber}: Notes exceed maximum length of 4096 characters (${row.notes.length} characters)`);
     }
   }
 
@@ -131,6 +137,15 @@ export function transformCSVToShows(
     const date = parseDate(row.date);
     const dateString = date ? date.toISOString().split('T')[0] : '';
 
+    // Process notes: trim and convert empty string to null
+    let notes: string | null = null;
+    if (row.notes) {
+      const trimmedNotes = row.notes.trim();
+      if (trimmedNotes.length > 0) {
+        notes = trimmedNotes.slice(0, 4096); // Enforce max length
+      }
+    }
+
     return {
       clerk_user_id: userId,
       date: dateString,
@@ -139,6 +154,7 @@ export function transformCSVToShows(
       city: row.city?.trim() || null,
       state: row.state?.trim() || null,
       country: row.country?.trim() || null,
+      notes,
     };
   });
 }

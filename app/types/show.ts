@@ -7,6 +7,7 @@ export interface Show {
   city: string | null;
   state: string | null;
   country: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -18,6 +19,7 @@ export interface CSVRow {
   city: string;
   state: string;
   country: string;
+  notes?: string;
 }
 
 export interface ParsedCSVData {
@@ -33,6 +35,7 @@ export interface ShowInsert {
   city: string | null;
   state: string | null;
   country: string | null;
+  notes: string | null;
 }
 
 export interface ValidationResult {

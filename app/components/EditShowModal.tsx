@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import type { Show } from '@/types/show';
 
 interface EditShowModalProps {
@@ -33,6 +34,7 @@ export default function EditShowModal({
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
+  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,6 +47,7 @@ export default function EditShowModal({
       setCity(show.city || '');
       setState(show.state || '');
       setCountry(show.country || '');
+      setNotes(show.notes || '');
       setError('');
     }
   }, [show]);
@@ -98,6 +101,7 @@ export default function EditShowModal({
           city: city || null,
           state: state || null,
           country: country || null,
+          notes: notes.trim() || null,
         }),
       });
 
@@ -212,6 +216,28 @@ export default function EditShowModal({
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 className="font-mono border-black"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label htmlFor="notes">Notes</Label>
+                <span className="text-xs text-gray-600 font-mono">
+                  {notes.length}/4096
+                </span>
+              </div>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 4096) {
+                    setNotes(value);
+                  }
+                }}
+                placeholder="Add notes about this show (optional)"
+                className="font-mono border-black resize-none"
+                rows={4}
               />
             </div>
           </div>
