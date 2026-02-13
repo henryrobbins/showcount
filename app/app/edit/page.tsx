@@ -23,6 +23,7 @@ async function EditPage() {
         id,
         name,
         city,
+        state,
         country,
         latitude,
         longitude
@@ -40,6 +41,7 @@ async function EditPage() {
         ...show,
         venue: venue?.name || show.venue || null,
         city: venue?.city || show.city || null,
+        state: venue?.state || show.state || null,
         country: venue?.country || show.country || null,
         // Remove the nested venues object from the result
         venues: undefined,
