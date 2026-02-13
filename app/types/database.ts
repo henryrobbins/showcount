@@ -127,6 +127,58 @@ export interface Database {
           updated_at?: string;
         };
       };
+      user_profiles: {
+        Row: {
+          id: string;
+          clerk_user_id: string;
+          caption: string | null;
+          city: string | null;
+          show_email: boolean;
+          song_chasing: string | null;
+          band_chasing: string | null;
+          favorite_show: string | null;
+          favorite_venue: string | null;
+          cashortrade_username: string | null;
+          instagram_username: string | null;
+          x_username: string | null;
+          facebook_username: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          clerk_user_id: string;
+          caption?: string | null;
+          city?: string | null;
+          show_email?: boolean;
+          song_chasing?: string | null;
+          band_chasing?: string | null;
+          favorite_show?: string | null;
+          favorite_venue?: string | null;
+          cashortrade_username?: string | null;
+          instagram_username?: string | null;
+          x_username?: string | null;
+          facebook_username?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          clerk_user_id?: string;
+          caption?: string | null;
+          city?: string | null;
+          show_email?: boolean;
+          song_chasing?: string | null;
+          band_chasing?: string | null;
+          favorite_show?: string | null;
+          favorite_venue?: string | null;
+          cashortrade_username?: string | null;
+          instagram_username?: string | null;
+          x_username?: string | null;
+          facebook_username?: string | null;
+          updated_at?: string;
+        };
+      };
     };
   };
 }

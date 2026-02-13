@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import ShowsTable from '@/components/ShowsTable';
+import UserProfileSection from '@/components/UserProfileSection';
 import { createClient } from '@/lib/supabase/server';
 import type { UserShowWithDetails } from '@/types/show';
+import type { UserProfile } from '@/types/profile';
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -29,8 +31,17 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
   const { userId: currentUserId } = await auth();
   const isOwnProfile = currentUserId === user.id;
 
-  // Fetch user_shows with joined central_shows and venues
+  // Fetch user profile
   const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('clerk_user_id', user.id)
+    .single();
+
+  const userProfile = profile as UserProfile | null;
+
+  // Fetch user_shows with joined central_shows and venues
   const { data: userShows, error } = await supabase
     .from('user_shows')
     .select(`
@@ -112,6 +123,12 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
             {transformedShows.length} shows attended
           </p>
         </div>
+
+        <UserProfileSection
+          profile={userProfile}
+          userEmail={user.emailAddresses?.[0]?.emailAddress || null}
+          isOwnProfile={isOwnProfile}
+        />
 
         {transformedShows.length === 0 ? (
           <div className="border border-black p-8 text-center">
