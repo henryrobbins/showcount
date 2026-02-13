@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOrCreateVenue } from "@/lib/venues";
 import type { Database } from "@/types/database";
 
 export async function PUT(
@@ -43,6 +44,14 @@ export async function PUT(
       }
     }
 
+    // Validate venue fields: USA requires all four fields
+    if (country === "USA" && (!venue || !city || !state)) {
+      return NextResponse.json(
+        { error: "USA venues require name, city, state, and country" },
+        { status: 400 }
+      );
+    }
+
     // Update in database
     const supabase = await createClient();
 
@@ -64,17 +73,29 @@ export async function PUT(
       );
     }
 
-    // Update the show
+    // Get or create venue if venue name is provided
+    let venueId: string | null = null;
+    if (venue) {
+      venueId = await getOrCreateVenue({
+        name: venue,
+        city: city || null,
+        state: state || null,
+        country: country || null,
+      });
+    }
+
+    // Update the show with venue_id
     type ShowUpdate = Database["public"]["Tables"]["shows"]["Update"];
     type ShowRow = Database["public"]["Tables"]["shows"]["Row"];
 
     const updateData: ShowUpdate = {
       date,
       artists,
-      venue: venue || null,
-      city: city || null,
-      state: state || null,
-      country: country || null,
+      venue_id: venueId,
+      venue: null, // Legacy fields set to null for edited shows
+      city: null,
+      state: null,
+      country: null,
       notes: notes || null,
     };
 
