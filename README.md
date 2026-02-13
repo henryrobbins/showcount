@@ -32,10 +32,12 @@ showcount is a web application that allows users to track and share the concerts
    bun install
    ```
 
-4. Set up environment variables (optional for now):
+4. Set up environment variables (required for authentication):
    ```bash
    cp .env.example .env
    ```
+
+   See the [Authentication](#authentication) section below for instructions on obtaining Clerk API keys.
 
 5. Start the development server:
    ```bash
@@ -43,6 +45,36 @@ showcount is a web application that allows users to track and share the concerts
    ```
 
    The application will be available at `http://localhost:3000`
+
+## Authentication
+
+This application uses Clerk for user authentication. You'll need to set up Clerk API keys to run the application locally.
+
+### Getting Clerk API Keys
+
+1. Visit the Clerk dashboard for this project: [https://dashboard.clerk.com/apps/app_2w1MxquuQHzgC2OnjcmMFi6ksNX/instances/ins_39aonR3qudtjDPqzQQUxoVVEot6](https://dashboard.clerk.com/apps/app_2w1MxquuQHzgC2OnjcmMFi6ksNX/instances/ins_39aonR3qudtjDPqzQQUxoVVEot6)
+
+2. Navigate to **API Keys** in the sidebar
+
+3. Copy the following values:
+   - **Publishable Key** - starts with `pk_test_` for development
+   - **Secret Key** - starts with `sk_test_` for development (keep this secret!)
+
+4. Add these values to your `app/.env` file:
+   ```bash
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+   CLERK_SECRET_KEY=sk_test_your_key_here
+   ```
+
+5. The optional sign-in/sign-up URL variables are already set in `.env.example` and can be left as-is
+
+### Development vs Production
+
+The Clerk application has separate instances for development and production:
+- **Development Instance**: `ins_2w1MxmBPiFs7V3aRUH6reh9jJCQ` (uses `pk_test_` and `sk_test_` keys)
+- **Production Instance**: Configured separately with `pk_live_` and `sk_live_` keys
+
+For local development, always use the test keys from the development instance.
 
 ### Available Commands
 
@@ -95,7 +127,7 @@ Any commits pushed to the `main` branch will trigger an automatic deployment to 
 - **Frontend**: Next.js with TypeScript, Tailwind CSS v3, Shadcn UI
 - **Backend**: FastAPI with Python (coming soon)
 - **Database**: Supabase (coming soon)
-- **Authentication**: Clerk (coming soon)
+- **Authentication**: Clerk
 - **Deployment**: Vercel
 - **Infrastructure**: Terraform
 
