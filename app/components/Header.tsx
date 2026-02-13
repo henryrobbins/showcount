@@ -7,21 +7,23 @@ function Header() {
   const { user } = useUser();
 
   return (
-    <header className="w-full border-b-2 border-black bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-4">
-        <nav className="flex items-center justify-between font-mono">
-          <div className="flex items-center gap-6">
+    <header className="w-full bg-white">
+      <div className="mx-auto max-w-6xl px-4">
+        <nav className="flex items-center justify-between font-mono py-4 border-b-2 border-black">
+          <div className="flex items-center">
             <Link
               href="/"
-              className="text-black hover:underline"
+              className="text-black hover:font-bold"
             >
               Home
             </Link>
+          </div>
+          <div className="flex items-center gap-6">
             <SignedIn>
               {user?.username && (
                 <Link
                   href={`/user/${user.username}`}
-                  className="text-black hover:underline"
+                  className="text-black hover:font-bold"
                 >
                   My Shows
                 </Link>
@@ -31,14 +33,12 @@ function Header() {
               <SignInButton mode="redirect">
                 <button
                   type="button"
-                  className="text-black hover:underline"
+                  className="text-black hover:font-bold"
                 >
                   My Shows
                 </button>
               </SignInButton>
             </SignedOut>
-          </div>
-          <div className="flex items-center">
             <SignedIn>
               <UserButton />
             </SignedIn>
