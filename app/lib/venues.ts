@@ -3,6 +3,18 @@ import { searchVenue, extractCity, extractCountry } from "@/lib/osm";
 import type { VenueSearchParams, VenueInsert } from "@/types/venue";
 import type { Database } from "@/types/database";
 
+export type VenueStatus = 
+  | "existing" 
+  | "created_with_osm" 
+  | "created_without_osm" 
+  | "failed";
+
+export interface VenueResult {
+  venueId: string | null;
+  status: VenueStatus;
+  venue?: Database["public"]["Tables"]["venues"]["Row"];
+}
+
 /**
  * Find an existing venue in the database
  * Matching logic: requires name, city, and country to match exactly
@@ -192,4 +204,67 @@ export async function getOrCreateVenue(
   }
 
   return null;
+}
+
+/**
+ * Get or create a venue with detailed status information
+ * @param params - Venue search parameters
+ * @returns Venue result with status
+ */
+export async function getOrCreateVenueWithStatus(
+  params: VenueSearchParams
+): Promise<VenueResult> {
+  const { name, city, country } = params;
+
+  // Validate parameters
+  if (country === "USA" && (!name || !city)) {
+    console.error("USA venues require name, city, and country");
+    return { venueId: null, status: "failed" };
+  }
+
+  if (!name) {
+    console.error("Venue name is required");
+    return { venueId: null, status: "failed" };
+  }
+
+  // Try to find existing venue
+  const existing = await findVenue(params);
+  if (existing) {
+    return {
+      venueId: existing.id,
+      status: "existing",
+      venue: existing,
+    };
+  }
+
+  // Try to create venue with OSM data
+  try {
+    const results = await searchVenue(name, city, country);
+
+    if (results.length > 0) {
+      // OSM data found
+      const newVenue = await createVenueFromOSM(params);
+      if (newVenue) {
+        return {
+          venueId: newVenue.id,
+          status: "created_with_osm",
+          venue: newVenue,
+        };
+      }
+    }
+
+    // No OSM data found, create without coordinates
+    const venueWithoutOSM = await createVenueWithoutOSM(params);
+    if (venueWithoutOSM) {
+      return {
+        venueId: venueWithoutOSM.id,
+        status: "created_without_osm",
+        venue: venueWithoutOSM,
+      };
+    }
+  } catch (error) {
+    console.error("Error in getOrCreateVenueWithStatus:", error);
+  }
+
+  return { venueId: null, status: "failed" };
 }
