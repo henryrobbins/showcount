@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import AddShowModal from '@/components/AddShowModal';
 import DeleteConfirmModal from '@/components/DeleteConfirmModal';
@@ -20,6 +20,11 @@ export default function EditClient({ initialShows }: EditClientProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [modalState, setModalState] = useState<'add' | 'edit' | 'delete' | null>(null);
   const [editingShow, setEditingShow] = useState<Show | null>(null);
+
+  // Update shows when initialShows changes (after router.refresh())
+  useEffect(() => {
+    setShows(initialShows);
+  }, [initialShows]);
 
   const handleSelectionChange = (id: string, selected: boolean) => {
     const newSelectedIds = new Set(selectedIds);
@@ -45,25 +50,16 @@ export default function EditClient({ initialShows }: EditClientProps) {
   };
 
   const handleSuccess = () => {
-    // Refresh the page to get updated data
-    router.refresh();
-
-    // Also refresh shows state
-    fetch('/api/shows')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setShows(data);
-        }
-      })
-      .catch((error) => {
-        console.error('Error refreshing shows:', error);
-      });
-
     // Clear selection after delete
     if (modalState === 'delete') {
       setSelectedIds(new Set());
     }
+
+    // Close modal
+    setModalState(null);
+    
+    // Refresh the page to get updated data from the server
+    router.refresh();
   };
 
   const selectedShows = shows.filter((show) => selectedIds.has(show.id));
