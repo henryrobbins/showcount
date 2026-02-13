@@ -1,14 +1,14 @@
-import { ClerkProvider } from '@clerk/nextjs';
-import type { Metadata } from 'next';
+import { ClerkProvider } from "@clerk/nextjs";
+import type { Metadata } from "next";
 
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 
-import './globals.css';
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'SHOWCOUNT',
-  description: 'Concert tracking. Coming soon.',
+  title: "SHOWCOUNT",
+  description: "Concert tracking. Coming soon.",
 };
 
 interface RootLayoutProps {
