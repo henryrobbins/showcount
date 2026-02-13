@@ -12,12 +12,16 @@ interface UserProfileSectionProps {
   profile: UserProfile | null;
   userEmail: string | null;
   isOwnProfile: boolean;
+  displayName: string;
+  showCount: number;
 }
 
 export default function UserProfileSection({
   profile,
   userEmail,
   isOwnProfile,
+  displayName,
+  showCount,
 }: UserProfileSectionProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [localProfile, setLocalProfile] = useState<UserProfile | null>(profile);
@@ -37,23 +41,14 @@ export default function UserProfileSection({
         <NewUserBanner profile={localProfile} onEditClick={handleEditClick} />
       )}
 
-      {(localProfile ||
-        (isOwnProfile && !localProfile)) && (
-        <div className="mb-8">
-          {isOwnProfile && (
-            <div className="flex justify-end mb-4">
-              <Button
-                onClick={handleEditClick}
-                variant="outline"
-                className="border-black font-mono"
-              >
-                Edit Profile
-              </Button>
-            </div>
-          )}
-          <ProfileDisplay profile={localProfile} userEmail={userEmail} />
-        </div>
-      )}
+      <ProfileDisplay 
+        profile={localProfile} 
+        userEmail={userEmail}
+        displayName={displayName}
+        showCount={showCount}
+        isOwnProfile={isOwnProfile}
+        onEditClick={handleEditClick}
+      />
 
       <EditProfileModal
         open={showEditModal}

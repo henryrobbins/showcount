@@ -115,19 +115,12 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
   return (
     <main className="min-h-screen bg-white text-black py-8">
       <div className="container mx-auto max-w-6xl px-4">
-        <div className="border-2 border-black p-8 mb-8">
-          <h1 className="text-4xl font-bold font-mono tracking-wider">
-            {displayName}
-          </h1>
-          <p className="font-mono text-sm mt-2 text-gray-600">
-            {transformedShows.length} shows attended
-          </p>
-        </div>
-
         <UserProfileSection
           profile={userProfile}
           userEmail={user.emailAddresses?.[0]?.emailAddress || null}
           isOwnProfile={isOwnProfile}
+          displayName={displayName}
+          showCount={transformedShows.length}
         />
 
         {transformedShows.length === 0 ? (
