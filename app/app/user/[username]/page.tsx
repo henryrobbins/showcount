@@ -71,7 +71,14 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
         ) : (
           <>
             {isOwnProfile && (
-              <div className="mb-4 flex justify-end">
+              <div className="mb-4 flex justify-end gap-4">
+                <Link
+                  href="/edit"
+                  className="px-4 py-2 border border-black bg-white text-black 
+                           font-mono hover:bg-gray-100"
+                >
+                  Edit Shows
+                </Link>
                 <Link
                   href="/upload"
                   className="px-4 py-2 border border-black bg-white text-black 
