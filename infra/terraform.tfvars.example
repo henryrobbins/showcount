@@ -6,3 +6,10 @@ project_name = "showcount"
 # Navigate to: API Keys → Production keys (pk_live_* and sk_live_*)
 clerk_publishable_key = "pk_live_your_production_key_here"
 clerk_secret_key = "sk_live_your_production_key_here"
+
+# Supabase
+# Create a personal access token from: https://supabase.com/dashboard/account/tokens
+# Get organization ID from: https://supabase.com/dashboard/org/_/general
+supabase_access_token = "sbp_your_access_token_here"
+supabase_organization_id = "your_organization_id_here"
+supabase_database_password = "your_secure_database_password_here"
