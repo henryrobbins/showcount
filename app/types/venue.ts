@@ -7,6 +7,7 @@ export type VenueUpdate = Database['public']['Tables']['venues']['Update'];
 export interface VenueSearchParams {
   name: string;
   city?: string | null;
+  state?: string | null;
   country?: string | null;
 }
 
@@ -19,6 +20,7 @@ export interface OSMSearchResult {
     city?: string;
     town?: string;
     village?: string;
+    state?: string;
     country?: string;
     country_code?: string;
   };

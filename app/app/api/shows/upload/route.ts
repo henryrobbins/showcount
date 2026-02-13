@@ -48,10 +48,10 @@ export async function POST(request: Request) {
         }
       }
 
-      // Validate venue fields: USA requires all three fields
-      if (show.country === 'USA' && (!show.venue || !show.city)) {
+      // Validate venue fields: USA requires all four fields
+      if (show.country === 'USA' && (!show.venue || !show.city || !show.state)) {
         return NextResponse.json(
-          { error: 'USA venues require name, city, and country' },
+          { error: 'USA venues require name, city, state, and country' },
           { status: 400 }
         );
       }
@@ -61,6 +61,7 @@ export async function POST(request: Request) {
     interface VenueKey {
       name: string;
       city: string | null;
+      state: string | null;
       country: string | null;
     }
 
@@ -68,11 +69,12 @@ export async function POST(request: Request) {
     
     for (const show of shows) {
       if (show.venue) {
-        const key = `${show.venue}|${show.city || ''}|${show.country || ''}`;
+        const key = `${show.venue}|${show.city || ''}|${show.state || ''}|${show.country || ''}`;
         if (!venueMap.has(key)) {
           venueMap.set(key, {
             name: show.venue,
             city: show.city || null,
+            state: show.state || null,
             country: show.country || null,
           });
         }
@@ -92,7 +94,7 @@ export async function POST(request: Request) {
       let venueId: string | null = null;
       
       if (show.venue) {
-        const key = `${show.venue}|${show.city || ''}|${show.country || ''}`;
+        const key = `${show.venue}|${show.city || ''}|${show.state || ''}|${show.country || ''}`;
         venueId = venueIdMap.get(key) || null;
       }
 

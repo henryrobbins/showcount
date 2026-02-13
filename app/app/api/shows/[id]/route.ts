@@ -44,10 +44,10 @@ export async function PUT(
       }
     }
 
-    // Validate venue fields: USA requires all three fields
-    if (country === "USA" && (!venue || !city)) {
+    // Validate venue fields: USA requires all four fields
+    if (country === "USA" && (!venue || !city || !state)) {
       return NextResponse.json(
-        { error: "USA venues require name, city, and country" },
+        { error: "USA venues require name, city, state, and country" },
         { status: 400 }
       );
     }
@@ -79,6 +79,7 @@ export async function PUT(
       venueId = await getOrCreateVenue({
         name: venue,
         city: city || null,
+        state: state || null,
         country: country || null,
       });
     }

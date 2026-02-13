@@ -61,9 +61,9 @@ export async function POST(request: Request) {
         }
       }
 
-      if (show.country === 'USA' && (!show.venue || !show.city)) {
+      if (show.country === 'USA' && (!show.venue || !show.city || !show.state)) {
         return NextResponse.json(
-          { error: 'USA venues require name, city, and country' },
+          { error: 'USA venues require name, city, state, and country' },
           { status: 400 }
         );
       }
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
             let venueStatus: UploadProgress['venueStatus'] = 'none';
             
             if (show.venue) {
-              const key = `${show.venue}|${show.city || ''}|${show.country || ''}`;
+              const key = `${show.venue}|${show.city || ''}|${show.state || ''}|${show.country || ''}`;
               
               // Check if we've already processed this venue
               if (venueCache.has(key)) {
@@ -98,6 +98,7 @@ export async function POST(request: Request) {
                 const result = await getOrCreateVenueWithStatus({
                   name: show.venue,
                   city: show.city || null,
+                  state: show.state || null,
                   country: show.country || null,
                 });
                 

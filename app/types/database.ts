@@ -50,6 +50,7 @@ export interface Database {
           id: string;
           name: string;
           city: string | null;
+          state: string | null;
           country: string;
           latitude: number | null;
           longitude: number | null;
@@ -62,6 +63,7 @@ export interface Database {
           id?: string;
           name: string;
           city?: string | null;
+          state?: string | null;
           country: string;
           latitude?: number | null;
           longitude?: number | null;
@@ -74,6 +76,7 @@ export interface Database {
           id?: string;
           name?: string;
           city?: string | null;
+          state?: string | null;
           country?: string;
           latitude?: number | null;
           longitude?: number | null;

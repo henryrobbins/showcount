@@ -81,6 +81,14 @@ export function extractCity(address?: OSMSearchResult['address']): string | null
 }
 
 /**
+ * Extract state from OSM address object
+ */
+export function extractState(address?: OSMSearchResult['address']): string | null {
+  if (!address) return null;
+  return address.state || null;
+}
+
+/**
  * Extract country from OSM address object
  */
 export function extractCountry(address?: OSMSearchResult['address']): string | null {
