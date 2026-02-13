@@ -1,10 +1,11 @@
-import type { Metadata } from 'next';
+import { ClerkProvider } from "@clerk/nextjs";
+import type { Metadata } from "next";
 
-import './globals.css';
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'SHOWCOUNT',
-  description: 'Concert tracking. Coming soon.',
+  title: "SHOWCOUNT",
+  description: "Concert tracking. Coming soon.",
 };
 
 interface RootLayoutProps {
@@ -13,9 +14,11 @@ interface RootLayoutProps {
 
 function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
-      <body suppressHydrationWarning>{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body suppressHydrationWarning>{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }
 

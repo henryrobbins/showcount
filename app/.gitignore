@@ -36,3 +36,6 @@ next-env.d.ts
 # Debug
 .vscode
 .idea
+
+# clerk configuration (can include secrets)
+/.clerk/
