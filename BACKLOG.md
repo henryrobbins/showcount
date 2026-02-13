@@ -1,6 +1,5 @@
 # BACKLOG.md
 
-- Google Maps API for auto-suggesting venue locations during show addition
 - Use Claude Tool or Skills to automatically parse any file format. Allow users to specify small prompt to improve performance. Allow users to manually bulk edit or chat to resolve parsing errors. Logging with Langfuse.
 - Encourage contributions with contributor flair on profile
 - Add images of design inspiration for reference
@@ -11,21 +10,16 @@
 - Link to CashOrTrade to find tickets for future shows
 - Link to Setlists.fm to link setlist data for shows
 - Link to Songfish for importing shows and/or linking setlist data
-- Add "Song I'm Chasing" and "Band I'm Chasing" profile sections
 - Add list of upcoming shows
 - Add easter eggs (e.g., "One More Saturday Night", "Never Miss a Sunday Show")
 - Public/private profiles and followers
 - Find other users with high overlap in show attendance "most shows in common"
-- Basic show statistics (see love-music-will-travel.henryrobbins.com)
-- Custom rating system: select categories with order or numeric and direction; toggle the rating system on/off
 - Attempt to autofill/populate missing data in your current shows list
 - Manage multiples shows lists
-- Basic page structure: nav bar with link to user page
 - User-specific link preview
 - Flair for beta users
 - Structured logging
 - Export data 
-- Basic account profile information
 - Loading for tables and plan upload
 - Support page with contact: support@showcount.com
 - Custom sign-in/sign-out components
