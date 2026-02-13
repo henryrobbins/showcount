@@ -2,7 +2,7 @@
 
 - Use free OpenStreetMap API to automatically pull location from venue names
 - Google Maps API for auto-suggesting venue locations during show addition
-- Use Claude Tool or Skills to automatically parse any file format. Allow users to specify small prompt to improve performance. Allow users to manually bulk edit or chat to resolve parsing errors.
+- Use Claude Tool or Skills to automatically parse any file format. Allow users to specify small prompt to improve performance. Allow users to manually bulk edit or chat to resolve parsing errors. Logging with Langfuse.
 - Manage global list of known shows and automatically link to user shows. Users have ultimate control on what constitutes a show. Hence, multiple shows may be linked to a single entry (e.g., both the opener and main act).
 - Encourage contributions with contributor flair on profile
 - Add images of design inspiration for reference
@@ -19,4 +19,22 @@
 - Public/private profiles and followers
 - Find other users with high overlap in show attendance "most shows in common"
 - Basic show statistics (see love-music-will-travel.henryrobbins.com)
+- /user/edit page with the ability to add/remove/edit shows
+- Venue linking (locations with OpenStreetMap). Create central venues table. When adding a show, check against the venues table first. If not match, search open street map and select top match. Check if that is in the venues database. If not, add it.
+- Custom rating system: select categories with order or numeric and direction; toggle the rating system on/off
+- Attempt to autofill/populate missing data in your current shows list
+- Manage multiples shows lists
+- Central shows table; automatically link to known shows during upload or contribute new shows
+- Basic page structure: nav bar with link to user page
+- Show notes column
+- User-specific link preview
+- Flair for beta users
+- Structured logging
+- Export data 
+- Basic account profile information
+- Loading for tables and plan upload
+- Support page with contact: support@showcount.com
+- Custom sign-in/sign-out components
+- Github actions for linting and formatting
+- Tech debt: RLS on supabase database
 
