@@ -30,6 +30,22 @@ export async function POST(request: Request) {
           { status: 403 }
         );
       }
+
+      // Validate notes if present
+      if (show.notes !== undefined && show.notes !== null) {
+        if (typeof show.notes !== 'string') {
+          return NextResponse.json(
+            { error: 'Notes must be a string' },
+            { status: 400 }
+          );
+        }
+        if (show.notes.length > 4096) {
+          return NextResponse.json(
+            { error: `Notes must not exceed 4096 characters (found ${show.notes.length})` },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     const supabase = await createClient();

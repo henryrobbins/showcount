@@ -1,4 +1,14 @@
+'use client';
+
+import { useState } from 'react';
+
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { Show } from '@/types/show';
 
 interface ShowsTableProps {
@@ -16,6 +26,8 @@ export default function ShowsTable({
   onRowClick,
   onSelectionChange,
 }: ShowsTableProps) {
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -23,6 +35,53 @@ export default function ShowsTable({
       day: '2-digit',
       year: '2-digit',
     });
+  };
+
+  const toggleNotes = (showId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedNotes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(showId)) {
+        newSet.delete(showId);
+      } else {
+        newSet.add(showId);
+      }
+      return newSet;
+    });
+  };
+
+  const renderNotes = (show: Show) => {
+    if (!show.notes) {
+      return '-';
+    }
+
+    const isExpanded = expandedNotes.has(show.id);
+    const needsTruncation = show.notes.length > 100;
+    const displayNotes = isExpanded || !needsTruncation 
+      ? show.notes 
+      : show.notes.slice(0, 100) + '...';
+
+    if (!needsTruncation) {
+      return <span>{show.notes}</span>;
+    }
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              onClick={(e) => toggleNotes(show.id, e)}
+              className="cursor-pointer hover:bg-gray-100"
+            >
+              {displayNotes}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-md font-mono text-xs">
+            <p className="whitespace-pre-wrap">{show.notes}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
   };
 
   const sortedShows = [...shows].sort((a, b) => {
@@ -42,7 +101,8 @@ export default function ShowsTable({
             <th className="text-left p-3 border-r border-black">Venue</th>
             <th className="text-left p-3 border-r border-black">City</th>
             <th className="text-left p-3 border-r border-black">State</th>
-            <th className="text-left p-3">Country</th>
+            <th className="text-left p-3 border-r border-black">Country</th>
+            <th className="text-left p-3">Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -86,7 +146,8 @@ export default function ShowsTable({
                 <td className="p-3 border-r border-black">{show.venue || '-'}</td>
                 <td className="p-3 border-r border-black">{show.city || '-'}</td>
                 <td className="p-3 border-r border-black">{show.state || '-'}</td>
-                <td className="p-3">{show.country || '-'}</td>
+                <td className="p-3 border-r border-black">{show.country || '-'}</td>
+                <td className="p-3">{renderNotes(show)}</td>
               </tr>
             );
           })}

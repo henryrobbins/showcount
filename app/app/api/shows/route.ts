@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { date, artists, venue, city, state, country } = body;
+    const { date, artists, venue, city, state, country, notes } = body;
 
     // Validate required fields
     if (!date || !artists || !Array.isArray(artists) || artists.length === 0) {
@@ -21,6 +21,22 @@ export async function POST(request: Request) {
         { error: "Date and at least one artist are required" },
         { status: 400 }
       );
+    }
+
+    // Validate notes if present
+    if (notes !== undefined && notes !== null) {
+      if (typeof notes !== "string") {
+        return NextResponse.json(
+          { error: "Notes must be a string" },
+          { status: 400 }
+        );
+      }
+      if (notes.length > 4096) {
+        return NextResponse.json(
+          { error: "Notes must not exceed 4096 characters" },
+          { status: 400 }
+        );
+      }
     }
 
     // Create show object
@@ -32,6 +48,7 @@ export async function POST(request: Request) {
       city: city || null,
       state: state || null,
       country: country || null,
+      notes: notes || null,
     };
 
     // Insert into database

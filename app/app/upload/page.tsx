@@ -121,6 +121,7 @@ export default function UploadPage() {
           <p className="ml-4">
             • Headers: date, artist, venue, city, state, country
           </p>
+          <p className="ml-4">• Optional header: notes (max 4096 characters)</p>
           <p className="ml-4">• Date format: MM-DD-YY or MM/DD/YY</p>
           <p className="ml-4">• Multiple artists: separated by '+'</p>
           <p className="ml-4">• Required fields: date and artist</p>
@@ -159,12 +160,16 @@ export default function UploadPage() {
                   <th className="text-left p-2 border-r border-black">Venue</th>
                   <th className="text-left p-2 border-r border-black">City</th>
                   <th className="text-left p-2 border-r border-black">State</th>
-                  <th className="text-left p-2">Country</th>
+                  <th className="text-left p-2 border-r border-black">Country</th>
+                  <th className="text-left p-2">Notes</th>
                 </tr>
               </thead>
               <tbody>
                 {previews.slice(0, 10).map((show) => {
                   const key = `${show.date}-${show.artists.join('-')}-${show.venue || ''}`;
+                  const truncatedNotes = show.notes && show.notes.length > 100 
+                    ? show.notes.slice(0, 100) + '...' 
+                    : show.notes;
                   return (
                     <tr key={key} className="border-b border-black">
                       <td className="p-2 border-r border-black">
@@ -182,7 +187,8 @@ export default function UploadPage() {
                       <td className="p-2 border-r border-black">
                         {show.state || '-'}
                       </td>
-                      <td className="p-2">{show.country || '-'}</td>
+                      <td className="p-2 border-r border-black">{show.country || '-'}</td>
+                      <td className="p-2">{truncatedNotes || '-'}</td>
                     </tr>
                   );
                 })}
