@@ -27,3 +27,32 @@ resource "vercel_project" "showcount" {
 
   serverless_function_region = "iad1"
 }
+
+resource "vercel_project_environment_variable" "clerk_publishable_key" {
+  project_id = vercel_project.showcount.id
+  key        = "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+  value      = var.clerk_publishable_key
+  target     = ["production", "preview"]
+}
+
+resource "vercel_project_environment_variable" "clerk_secret_key" {
+  project_id = vercel_project.showcount.id
+  key        = "CLERK_SECRET_KEY"
+  value      = var.clerk_secret_key
+  target     = ["production", "preview"]
+  sensitive  = true
+}
+
+resource "vercel_project_environment_variable" "clerk_sign_in_url" {
+  project_id = vercel_project.showcount.id
+  key        = "NEXT_PUBLIC_CLERK_SIGN_IN_URL"
+  value      = "/sign-in"
+  target     = ["production", "preview"]
+}
+
+resource "vercel_project_environment_variable" "clerk_sign_up_url" {
+  project_id = vercel_project.showcount.id
+  key        = "NEXT_PUBLIC_CLERK_SIGN_UP_URL"
+  value      = "/sign-up"
+  target     = ["production", "preview"]
+}

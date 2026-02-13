@@ -1,2 +1,8 @@
 vercel_api_token = "your-vercel-api-token-here"
 project_name = "showcount"
+
+# Clerk Authentication (Production)
+# Get these from: https://dashboard.clerk.com/apps/app_2w1MxquuQHzgC2OnjcmMFi6ksNX
+# Navigate to: API Keys → Production keys (pk_live_* and sk_live_*)
+clerk_publishable_key = "pk_live_your_production_key_here"
+clerk_secret_key = "sk_live_your_production_key_here"

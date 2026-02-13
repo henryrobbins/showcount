@@ -173,8 +173,13 @@ This section is only for project maintainers who need to manage the deployment i
 3. **Edit `.terraform.tfvars` and add your credentials**:
    ```hcl
    vercel_api_token = "your-actual-token-here"
-   # vercel_team_id = "team_xxxxx"  # Uncomment if using team
    project_name = "showcount"
+   
+   # Clerk Authentication (Production)
+   # Get these from: https://dashboard.clerk.com/apps/app_2w1MxquuQHzgC2OnjcmMFi6ksNX
+   # Navigate to: API Keys → Production keys
+   clerk_publishable_key = "pk_live_your_production_key_here"
+   clerk_secret_key = "sk_live_your_production_key_here"
    ```
 
 4. **Initialize Terraform**:
