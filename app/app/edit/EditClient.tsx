@@ -8,18 +8,18 @@ import DeleteConfirmModal from '@/components/DeleteConfirmModal';
 import EditShowModal from '@/components/EditShowModal';
 import ShowsTable from '@/components/ShowsTable';
 import { Button } from '@/components/ui/button';
-import type { Show } from '@/types/show';
+import type { UserShowWithDetails } from '@/types/show';
 
 interface EditClientProps {
-  initialShows: Show[];
+  initialShows: UserShowWithDetails[];
 }
 
 export default function EditClient({ initialShows }: EditClientProps) {
   const router = useRouter();
-  const [shows, setShows] = useState<Show[]>(initialShows);
+  const [shows, setShows] = useState<UserShowWithDetails[]>(initialShows);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [modalState, setModalState] = useState<'add' | 'edit' | 'delete' | null>(null);
-  const [editingShow, setEditingShow] = useState<Show | null>(null);
+  const [editingShow, setEditingShow] = useState<UserShowWithDetails | null>(null);
 
   // Update shows when initialShows changes (after router.refresh())
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function EditClient({ initialShows }: EditClientProps) {
     setSelectedIds(newSelectedIds);
   };
 
-  const handleRowClick = (show: Show) => {
+  const handleRowClick = (show: UserShowWithDetails) => {
     setEditingShow(show);
     setModalState('edit');
   };

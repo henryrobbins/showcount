@@ -9,13 +9,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { Show } from '@/types/show';
+import type { UserShowWithDetails } from '@/types/show';
 
 interface ShowsTableProps {
-  shows: Show[];
+  shows: UserShowWithDetails[];
   editable?: boolean;
   selectedIds?: Set<string>;
-  onRowClick?: (show: Show) => void;
+  onRowClick?: (show: UserShowWithDetails) => void;
   onSelectionChange?: (id: string, selected: boolean) => void;
 }
 
@@ -50,7 +50,7 @@ export default function ShowsTable({
     });
   };
 
-  const renderNotes = (show: Show) => {
+  const renderNotes = (show: UserShowWithDetails) => {
     if (!show.notes) {
       return '-';
     }
@@ -85,7 +85,10 @@ export default function ShowsTable({
   };
 
   const sortedShows = [...shows].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
+    // Sort by first show's date
+    const dateA = a.shows[0]?.date || '';
+    const dateB = b.shows[0]?.date || '';
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
 
   return (
@@ -108,6 +111,10 @@ export default function ShowsTable({
         <tbody>
           {sortedShows.map((show) => {
             const isSelected = selectedIds.has(show.id);
+            // Use first show for date and venue (all should be same for multi-artist shows)
+            const firstShow = show.shows[0];
+            const venue = firstShow?.venue;
+            
             return (
               <tr
                 key={show.id}
@@ -136,17 +143,15 @@ export default function ShowsTable({
                   </td>
                 )}
                 <td className="p-3 border-r border-black whitespace-nowrap">
-                  {formatDate(show.date)}
+                  {firstShow ? formatDate(firstShow.date) : '-'}
                 </td>
                 <td className="p-3 border-r border-black">
-                  {show.artists.map((artist) => (
-                    <div key={artist}>{artist}</div>
-                  ))}
+                  {show.shows.map((s) => s.artist).join(' + ')}
                 </td>
-                <td className="p-3 border-r border-black">{show.venue || '-'}</td>
-                <td className="p-3 border-r border-black">{show.city || '-'}</td>
-                <td className="p-3 border-r border-black">{show.state || '-'}</td>
-                <td className="p-3 border-r border-black">{show.country || '-'}</td>
+                <td className="p-3 border-r border-black">{venue?.name || '-'}</td>
+                <td className="p-3 border-r border-black">{venue?.city || '-'}</td>
+                <td className="p-3 border-r border-black">{venue?.state || '-'}</td>
+                <td className="p-3 border-r border-black">{venue?.country || '-'}</td>
                 <td className="p-3">{renderNotes(show)}</td>
               </tr>
             );

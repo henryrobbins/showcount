@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+import { getOrCreateCentralShow, getCentralShowsByIds } from "@/lib/central-shows";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateVenue } from "@/lib/venues";
 import type { Database } from "@/types/database";
@@ -57,7 +58,7 @@ export async function PUT(
 
     // First check if the show exists and belongs to the user
     const { data: existingShow, error: fetchError } = await supabase
-      .from("shows")
+      .from("user_shows")
       .select("clerk_user_id")
       .eq("id", id)
       .single();
@@ -84,30 +85,46 @@ export async function PUT(
       });
     }
 
-    // Update the show with venue_id
-    type ShowUpdate = Database["public"]["Tables"]["shows"]["Update"];
-    type ShowRow = Database["public"]["Tables"]["shows"]["Row"];
+    if (!venueId) {
+      return NextResponse.json(
+        { error: "Venue is required" },
+        { status: 400 }
+      );
+    }
 
-    const updateData: ShowUpdate = {
-      date,
-      artists,
-      venue_id: venueId,
-      venue: null, // Legacy fields set to null for edited shows
-      city: null,
-      state: null,
-      country: null,
+    // Create or get central shows for each artist
+    const showIds: string[] = [];
+
+    for (const artist of artists) {
+      const result = await getOrCreateCentralShow({
+        date,
+        artist,
+        venueId,
+        allowDuplicate: true, // Allow duplicates when editing
+      });
+
+      showIds.push(result.centralShow.id);
+    }
+
+    // Update the user_shows with new show_ids
+    type UserShowUpdate = Database["public"]["Tables"]["user_shows"]["Update"];
+    type UserShowRow = Database["public"]["Tables"]["user_shows"]["Row"];
+
+    const updateData: UserShowUpdate = {
+      show_ids: showIds,
       notes: notes || null,
+      // Legacy fields remain unchanged (will be null for new-style records)
     };
 
     const result = await supabase
-      .from("shows")
+      .from("user_shows")
       .update(updateData as never)
       .eq("id", id)
       .eq("clerk_user_id", userId)
       .select()
       .single();
 
-    const { data, error } = result as { data: ShowRow | null; error: any };
+    const { data, error } = result as { data: UserShowRow | null; error: any };
 
     if (error) {
       console.error("Database error:", error);
@@ -117,7 +134,16 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json(data, { status: 200 });
+    // Fetch the complete user show with central shows and venue data
+    const showsWithVenues = await getCentralShowsByIds(showIds);
+
+    return NextResponse.json(
+      {
+        ...data,
+        shows: showsWithVenues,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating show:", error);
     return NextResponse.json(
@@ -143,7 +169,7 @@ export async function DELETE(
 
     // Verify show exists and belongs to user
     const { data: existingShow, error: fetchError } = await supabase
-      .from("shows")
+      .from("user_shows")
       .select("clerk_user_id")
       .eq("id", id)
       .single();
@@ -162,9 +188,10 @@ export async function DELETE(
       );
     }
 
-    // Delete show
+    // Delete user_shows entry
+    // Note: central_shows remain for other users who may have attended the same show
     const { error } = await supabase
-      .from("shows")
+      .from("user_shows")
       .delete()
       .eq("id", id)
       .eq("clerk_user_id", userId);

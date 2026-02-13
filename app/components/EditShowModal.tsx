@@ -13,11 +13,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { Show } from '@/types/show';
+import type { UserShowWithDetails } from '@/types/show';
 
 interface EditShowModalProps {
   open: boolean;
-  show: Show | null;
+  show: UserShowWithDetails | null;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -40,13 +40,14 @@ export default function EditShowModal({
 
   // Populate form when show changes
   useEffect(() => {
-    if (show) {
-      setDate(show.date);
-      setArtists(show.artists.length > 0 ? show.artists : ['']);
-      setVenue(show.venue || '');
-      setCity(show.city || '');
-      setState(show.state || '');
-      setCountry(show.country || '');
+    if (show && show.shows.length > 0) {
+      const firstShow = show.shows[0];
+      setDate(firstShow.date);
+      setArtists(show.shows.length > 0 ? show.shows.map(s => s.artist) : ['']);
+      setVenue(firstShow.venue?.name || '');
+      setCity(firstShow.venue?.city || '');
+      setState(firstShow.venue?.state || '');
+      setCountry(firstShow.venue?.country || '');
       setNotes(show.notes || '');
       setError('');
     }

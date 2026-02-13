@@ -10,11 +10,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import type { Show } from '@/types/show';
+import type { UserShowWithDetails } from '@/types/show';
 
 interface DeleteConfirmModalProps {
   open: boolean;
-  shows: Show[];
+  shows: UserShowWithDetails[];
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -88,13 +88,18 @@ export default function DeleteConfirmModal({
 
           <div className="max-h-60 overflow-y-auto border border-black p-3">
             <div className="space-y-2">
-              {shows.map((show) => (
-                <div key={show.id} className="text-sm border-b border-gray-300 pb-2 last:border-b-0">
-                  <div className="font-bold">{formatDate(show.date)}</div>
-                  <div>{show.artists.join(', ')}</div>
-                  {show.venue && <div className="text-gray-600">{show.venue}</div>}
-                </div>
-              ))}
+              {shows.map((show) => {
+                const firstShow = show.shows[0];
+                const artists = show.shows.map(s => s.artist).join(' + ');
+                
+                return (
+                  <div key={show.id} className="text-sm border-b border-gray-300 pb-2 last:border-b-0">
+                    <div className="font-bold">{firstShow ? formatDate(firstShow.date) : '-'}</div>
+                    <div>{artists}</div>
+                    {firstShow?.venue && <div className="text-gray-600">{firstShow.venue.name}</div>}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
