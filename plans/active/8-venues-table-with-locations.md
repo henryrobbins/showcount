@@ -4,34 +4,34 @@ overview: Create a new venues table to store venue location data from OpenStreet
 todos:
   - id: create-venues-migration
     content: Create 003_create_venues_table.sql migration with venues table schema, indexes, and triggers
-    status: pending
+    status: completed
   - id: migrate-shows-schema
     content: Create 004_migrate_shows_to_venues.sql migration to add venue_id foreign key to shows table
-    status: pending
+    status: completed
   - id: update-database-types
     content: Update app/types/database.ts with venues table interfaces and venue_id in shows table
-    status: pending
+    status: completed
   - id: create-venue-types
     content: Create app/types/venue.ts with venue-specific type definitions
-    status: pending
+    status: completed
   - id: implement-osm-service
     content: Create app/lib/osm.ts with OpenStreetMap Nominatim API integration and rate limiting
-    status: pending
+    status: completed
   - id: implement-venue-service
     content: Create app/lib/venues.ts with findVenue, createVenueFromOSM, and getOrCreateVenue functions
-    status: pending
+    status: completed
   - id: update-shows-post-api
     content: Update POST handler in app/api/shows/route.ts to integrate venue lookup and creation
-    status: pending
+    status: completed
   - id: update-shows-get-api
     content: Update GET handler in app/api/shows/route.ts to join with venues table
-    status: pending
+    status: completed
   - id: update-shows-put-api
     content: Update PUT handler in app/api/shows/[id]/route.ts to handle venue updates
-    status: pending
+    status: completed
   - id: update-shows-upload-api
     content: Update POST handler in app/api/shows/upload/route.ts to handle bulk venue creation with rate limiting
-    status: pending
+    status: completed
 isProject: false
 ---
 

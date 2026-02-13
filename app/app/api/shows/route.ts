@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOrCreateVenue } from "@/lib/venues";
 import type { Database } from "@/types/database";
 
 export async function POST(request: Request) {
@@ -39,15 +40,34 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create show object
+    // Validate venue fields: USA requires all three fields
+    if (country === "USA" && (!venue || !city)) {
+      return NextResponse.json(
+        { error: "USA venues require name, city, and country" },
+        { status: 400 }
+      );
+    }
+
+    // Get or create venue if venue name is provided
+    let venueId: string | null = null;
+    if (venue) {
+      venueId = await getOrCreateVenue({
+        name: venue,
+        city: city || null,
+        country: country || null,
+      });
+    }
+
+    // Create show object with venue_id
     const newShow: Database["public"]["Tables"]["shows"]["Insert"] = {
       clerk_user_id: userId,
       date,
       artists,
-      venue: venue || null,
-      city: city || null,
-      state: state || null,
-      country: country || null,
+      venue_id: venueId,
+      venue: null, // Legacy fields set to null for new shows
+      city: null,
+      state: null,
+      country: null,
       notes: notes || null,
     };
 
