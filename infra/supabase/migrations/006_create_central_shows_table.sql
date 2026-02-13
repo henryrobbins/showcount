@@ -43,8 +43,12 @@ CREATE TRIGGER update_user_shows_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Step 3: Add show_ids column to user_shows
+-- Step 3: Add show_ids column to user_shows and make legacy columns nullable
 ALTER TABLE user_shows ADD COLUMN IF NOT EXISTS show_ids UUID[] NOT NULL DEFAULT '{}';
+
+-- Make legacy columns nullable (they're now optional since data lives in central_shows)
+ALTER TABLE user_shows ALTER COLUMN date DROP NOT NULL;
+ALTER TABLE user_shows ALTER COLUMN artists DROP NOT NULL;
 
 -- Step 4: Create function to normalize artist names (for show_id generation)
 CREATE OR REPLACE FUNCTION normalize_artist_name(artist_name TEXT)
