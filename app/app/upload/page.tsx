@@ -96,41 +96,52 @@ export default function UploadPage() {
         throw new Error("No response stream");
       }
 
+      let buffer = "";
+
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+
+        const lines = buffer.split("\n");
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
-            const data = JSON.parse(line.slice(6));
+            try {
+              const data = JSON.parse(line.slice(6));
 
-            if (data.type === "progress" && data.showInfo) {
-              setUploadProgress((prev) => [
-                ...prev,
-                {
-                  showNumber: data.currentShow,
-                  date: data.showInfo.date,
-                  artists: data.showInfo.artists,
-                  venue: data.showInfo.venue,
-                  venueStatus: data.venueStatus,
-                },
-              ]);
-            } else if (data.type === "complete") {
-              setUploadComplete(true);
-              setTimeout(() => {
-                router.push(`/user/${user?.username || user?.id}`);
-              }, 2000);
-            } else if (data.type === "error") {
-              throw new Error(data.error || "Upload failed");
+              if (data.type === "progress" && data.showInfo) {
+                setUploadProgress((prev) => [
+                  ...prev,
+                  {
+                    showNumber: data.currentShow,
+                    date: data.showInfo.date,
+                    artists: data.showInfo.artists,
+                    venue: data.showInfo.venue,
+                    venueStatus: data.venueStatus,
+                  },
+                ]);
+              } else if (data.type === "complete") {
+                setUploadComplete(true);
+                setTimeout(() => {
+                  router.push(`/user/${user?.username || user?.id}`);
+                }, 2000);
+              } else if (data.type === "error") {
+                throw new Error(data.error || "Upload failed");
+              }
+            } catch (parseError) {
+              console.error("Error parsing SSE data:", parseError, "Line:", line);
             }
           }
         }
       }
     } catch (err) {
+      console.error("Upload error:", err);
       setError(err instanceof Error ? err.message : "Failed to upload shows");
       setUploading(false);
     }
@@ -202,6 +213,11 @@ export default function UploadPage() {
         <div className="mb-8 border-2 border-black p-6">
           <h2 className="text-xl font-mono font-bold mb-4">Upload Progress</h2>
           <div className="space-y-2 max-h-96 overflow-y-auto">
+            {uploadProgress.length === 0 && !uploadComplete && (
+              <div className="font-mono text-sm text-gray-600">
+                Starting upload...
+              </div>
+            )}
             {uploadProgress.map((item, index) => {
               let statusText = "";
               let statusColor = "";

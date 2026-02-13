@@ -74,42 +74,12 @@ export async function POST(request: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const progress: UploadProgress[] = [];
           const showsWithVenueIds: any[] = [];
-
-          // Extract unique venues
-          interface VenueKey {
-            name: string;
-            city: string | null;
-            country: string | null;
-          }
-          const venueMap = new Map<string, VenueKey>();
           
-          for (const show of shows) {
-            if (show.venue) {
-              const key = `${show.venue}|${show.city || ''}|${show.country || ''}`;
-              if (!venueMap.has(key)) {
-                venueMap.set(key, {
-                  name: show.venue,
-                  city: show.city || null,
-                  country: show.country || null,
-                });
-              }
-            }
-          }
+          // Cache venues as we process them to avoid duplicate lookups
+          const venueCache = new Map<string, { id: string | null; status: string }>();
 
-          // Process venues with detailed status
-          const venueStatusMap = new Map<string, { id: string | null; status: string }>();
-          
-          for (const [key, venueParams] of venueMap.entries()) {
-            const result = await getOrCreateVenueWithStatus(venueParams);
-            venueStatusMap.set(key, {
-              id: result.venueId,
-              status: result.status,
-            });
-          }
-
-          // Process each show
+          // Process each show and send updates in real-time
           for (let i = 0; i < shows.length; i++) {
             const show = shows[i];
             let venueId: string | null = null;
@@ -117,9 +87,29 @@ export async function POST(request: Request) {
             
             if (show.venue) {
               const key = `${show.venue}|${show.city || ''}|${show.country || ''}`;
-              const venueInfo = venueStatusMap.get(key);
-              venueId = venueInfo?.id || null;
-              venueStatus = (venueInfo?.status as UploadProgress['venueStatus']) || 'failed';
+              
+              // Check if we've already processed this venue
+              if (venueCache.has(key)) {
+                const cached = venueCache.get(key)!;
+                venueId = cached.id;
+                venueStatus = cached.status as UploadProgress['venueStatus'];
+              } else {
+                // Look up or create venue with status
+                const result = await getOrCreateVenueWithStatus({
+                  name: show.venue,
+                  city: show.city || null,
+                  country: show.country || null,
+                });
+                
+                venueId = result.venueId;
+                venueStatus = result.status as UploadProgress['venueStatus'];
+                
+                // Cache the result
+                venueCache.set(key, {
+                  id: result.venueId,
+                  status: result.status,
+                });
+              }
             }
 
             // Prepare show for insertion
@@ -135,7 +125,7 @@ export async function POST(request: Request) {
               notes: show.notes || null,
             });
 
-            // Send progress update
+            // Send progress update immediately
             const progressUpdate: UploadProgress = {
               type: 'progress',
               currentShow: i + 1,
