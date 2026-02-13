@@ -1,31 +1,31 @@
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-import { createClient } from '@/lib/supabase/server';
-import type { Show } from '@/types/show';
+import { createClient } from "@/lib/supabase/server";
+import type { Show } from "@/types/show";
 
-import EditClient from './EditClient';
+import EditClient from "@/app/edit/EditClient";
 
 async function EditPage() {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect('/sign-in');
+    redirect("/sign-in");
   }
 
   // Fetch user's shows from Supabase
   const supabase = await createClient();
   const { data: shows, error } = await supabase
-    .from('shows')
-    .select('*')
-    .eq('clerk_user_id', userId)
-    .order('date', { ascending: false });
+    .from("shows")
+    .select("*")
+    .eq("clerk_user_id", userId)
+    .order("date", { ascending: false });
 
   const userShows = (shows || []) as Show[];
 
   // If no shows, redirect to upload page
   if (userShows.length === 0) {
-    redirect('/upload');
+    redirect("/upload");
   }
 
   return <EditClient initialShows={userShows} />;
