@@ -47,13 +47,81 @@ Testing strategy and frameworks will be added once there is code to test. Future
 
 ## Database
 
+### Supabase Setup
+
+The application uses Supabase as its database provider. For local development, you have two options:
+
+#### Option 1: Supabase CLI (Recommended)
+
+1. **Install Supabase CLI:**
+   ```bash
+   brew install supabase/tap/supabase
+   ```
+
+2. **Initialize Supabase locally:**
+   ```bash
+   cd infra
+   supabase init  # Creates infra/supabase/ directory
+   ```
+
+3. **Start Supabase local instance:**
+   ```bash
+   cd infra
+   supabase start
+   ```
+   This will start a local Supabase instance with PostgreSQL, Realtime, Auth, and more.
+
+4. **Apply migrations:**
+   Migrations are already in `infra/supabase/migrations/` and will be applied automatically when you run `supabase start`. To reset the database:
+   ```bash
+   cd infra
+   supabase db reset
+   ```
+
+5. **Copy environment variables:**
+   After running `supabase start`, you'll see output like:
+   ```
+   API URL: http://127.0.0.1:54321
+   anon key: eyJh...
+   ```
+   Copy these to your `app/.env` file:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJh...
+   ```
+
+#### Option 2: Supabase Cloud (Development Project)
+
+1. **Create a free project** at [supabase.com](https://supabase.com)
+2. **Run the database migration** from `infra/supabase/migrations/001_create_shows_table.sql` in the SQL Editor
+3. **Copy your project credentials** from Project Settings → API:
+   - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
+   - anon/public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. **Add to** `app/.env`
+
 ### Schema and Migrations
 
-Database schema design and migration strategy will be defined when the relevant plan is created. For now:
-- Supabase is the database provider
-- Provisioned via Terraform
-- Accessible from Next.js app and potentially backend services
-- Local development will use Supabase local development tools or a dev instance
+Database migrations are stored in `infra/supabase/migrations/`. The current schema includes:
+
+- **shows table**: Stores user show attendance records
+  - Links to users via `clerk_user_id`
+  - RLS is disabled; authorization is handled at the application level in API routes
+  - Supports multiple artists per show (using PostgreSQL arrays)
+
+To create a new migration:
+1. Create a new SQL file in `infra/supabase/migrations/` with an incremented timestamp
+2. If using Supabase CLI, run `cd infra && supabase db reset` to apply
+3. If using cloud, run the SQL in the Supabase dashboard
+
+### Connecting Clerk to Supabase
+
+The app uses Clerk for authentication. Since Clerk and Supabase are separate auth systems, we handle authorization at the application level:
+
+1. **API routes** use Clerk's `auth()` to get the authenticated user ID
+2. **Authorization checks** in the API routes ensure users can only access their own data
+3. **Database queries** filter by `clerk_user_id` to enforce data isolation
+
+This approach is simpler than integrating Clerk JWT with Supabase RLS and works well for this use case.
 
 ## Makefile Conventions
 

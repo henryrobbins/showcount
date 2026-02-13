@@ -21,3 +21,20 @@ variable "clerk_secret_key" {
   type        = string
   sensitive   = true
 }
+
+variable "supabase_access_token" {
+  description = "Supabase personal access token for Terraform provider"
+  type        = string
+  sensitive   = true
+}
+
+variable "supabase_organization_id" {
+  description = "Supabase organization ID"
+  type        = string
+}
+
+variable "supabase_database_password" {
+  description = "Supabase database password"
+  type        = string
+  sensitive   = true
+}
