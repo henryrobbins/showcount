@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import BasicStats from '@/components/BasicStats';
 import ShowsTable from '@/components/ShowsTable';
 import UserProfileSection from '@/components/UserProfileSection';
 import { createClient } from '@/lib/supabase/server';
@@ -120,6 +121,16 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
       ? userProfile.rating_system_config
       : null;
 
+  // Calculate basic statistics
+  const stats = {
+    totalShows: transformedShows.length,
+    uniqueArtists: new Set(transformedShows.flatMap(s => s.shows.map(cs => cs.artist))).size,
+    uniqueVenues: new Set(transformedShows.flatMap(s => s.shows.map(cs => cs.venue?.name).filter(Boolean))).size,
+    uniqueCities: new Set(transformedShows.flatMap(s => s.shows.map(cs => cs.venue?.city).filter(Boolean))).size,
+    uniqueStates: new Set(transformedShows.flatMap(s => s.shows.map(cs => cs.venue?.state).filter(Boolean))).size,
+    uniqueCountries: new Set(transformedShows.flatMap(s => s.shows.map(cs => cs.venue?.country).filter(Boolean))).size,
+  };
+
   return (
     <main className="min-h-screen bg-white text-black py-8">
       <div className="container mx-auto max-w-6xl px-4">
@@ -150,6 +161,30 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
           </div>
         ) : (
           <>
+            <BasicStats
+              totalShows={stats.totalShows}
+              uniqueArtists={stats.uniqueArtists}
+              uniqueVenues={stats.uniqueVenues}
+              uniqueCities={stats.uniqueCities}
+              uniqueStates={stats.uniqueStates}
+              uniqueCountries={stats.uniqueCountries}
+            />
+
+            <div className="mb-4 flex gap-4 font-mono text-sm">
+              <Link href={`/user/${username}/stats/artists`} className="underline hover:no-underline">
+                Artist Stats
+              </Link>
+              <Link href={`/user/${username}/stats/venues`} className="underline hover:no-underline">
+                Venue Stats
+              </Link>
+              <Link href={`/user/${username}/stats/places`} className="underline hover:no-underline">
+                Place Stats
+              </Link>
+              <Link href={`/user/${username}/stats/dates`} className="underline hover:no-underline">
+                Date Stats
+              </Link>
+            </div>
+
             {isOwnProfile && (
               <div className="mb-4 flex justify-end gap-4">
                 <Link
