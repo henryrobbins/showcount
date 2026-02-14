@@ -2,9 +2,11 @@ import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 import { getOrCreateCentralShow } from '@/lib/central-shows';
+import { validateRatingValue } from '@/lib/rating-validation';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateVenueWithStatus } from '@/lib/venues';
 import type { ShowInsert } from '@/types/show';
+import type { Database } from '@/types/database';
 
 export interface UploadProgress {
   type: 'progress' | 'complete' | 'error';
@@ -38,6 +40,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Fetch user profile to validate ratings if present
+    const supabase = await createClient();
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('ratings_enabled, rating_system_config')
+      .eq('clerk_user_id', userId)
+      .single<Pick<Database['public']['Tables']['user_profiles']['Row'], 'ratings_enabled' | 'rating_system_config'>>();
+
     // Validate all shows upfront
     for (const show of shows) {
       if (show.clerk_user_id !== userId) {
@@ -67,6 +77,23 @@ export async function POST(request: Request) {
           { error: 'USA venues require name, city, state, and country' },
           { status: 400 }
         );
+      }
+
+      // Validate rating if present
+      if (show.rating !== undefined && show.rating !== null && show.rating !== '') {
+        if (!profile?.ratings_enabled) {
+          return NextResponse.json(
+            { error: 'Ratings are not enabled for your profile. Enable ratings in your profile settings before uploading shows with ratings.' },
+            { status: 400 }
+          );
+        }
+
+        if (!validateRatingValue(show.rating, profile.rating_system_config)) {
+          return NextResponse.json(
+            { error: `Invalid rating value "${show.rating}" for your rating system` },
+            { status: 400 }
+          );
+        }
       }
     }
 
@@ -136,6 +163,7 @@ export async function POST(request: Request) {
               clerk_user_id: show.clerk_user_id,
               show_ids: showIds,
               notes: show.notes || null,
+              rating: show.rating || null,
               // Legacy fields set to null
               date: null,
               artists: null,
@@ -166,8 +194,8 @@ export async function POST(request: Request) {
           }
 
           // Insert all user_shows
-          const supabase = await createClient();
-          const { data, error } = await supabase
+          const insertSupabase = await createClient();
+          const { data, error } = await insertSupabase
             .from('user_shows')
             .insert(userShowsToInsert as any)
             .select();

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import RatingInput from '@/components/RatingInput';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,12 +15,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { UserShowWithDetails } from '@/types/show';
+import type { RatingSystemConfig } from '@/types/rating';
 
 interface EditShowModalProps {
   open: boolean;
   show: UserShowWithDetails | null;
   onClose: () => void;
   onSuccess: () => void;
+  ratingSystemConfig?: RatingSystemConfig | null;
 }
 
 export default function EditShowModal({
@@ -27,6 +30,7 @@ export default function EditShowModal({
   show,
   onClose,
   onSuccess,
+  ratingSystemConfig = null,
 }: EditShowModalProps) {
   const [date, setDate] = useState('');
   const [artists, setArtists] = useState(['']);
@@ -35,6 +39,7 @@ export default function EditShowModal({
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
   const [notes, setNotes] = useState('');
+  const [rating, setRating] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -49,6 +54,7 @@ export default function EditShowModal({
       setState(firstShow.venue?.state || '');
       setCountry(firstShow.venue?.country || '');
       setNotes(show.notes || '');
+      setRating(show.rating || null);
       setError('');
     }
   }, [show]);
@@ -103,6 +109,7 @@ export default function EditShowModal({
           state: state || null,
           country: country || null,
           notes: notes.trim() || null,
+          rating: rating || null,
         }),
       });
 
@@ -241,6 +248,14 @@ export default function EditShowModal({
                 rows={4}
               />
             </div>
+
+            {ratingSystemConfig && (
+              <RatingInput
+                value={rating}
+                config={ratingSystemConfig}
+                onChange={setRating}
+              />
+            )}
           </div>
 
           <DialogFooter className="mt-6">

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import RatingInput from '@/components/RatingInput';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,11 +14,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import type { RatingSystemConfig } from '@/types/rating';
 
 interface AddShowModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  ratingSystemConfig?: RatingSystemConfig | null;
 }
 
 interface DuplicateShow {
@@ -35,6 +38,7 @@ export default function AddShowModal({
   open,
   onClose,
   onSuccess,
+  ratingSystemConfig = null,
 }: AddShowModalProps) {
   const [date, setDate] = useState('');
   const [artists, setArtists] = useState(['']);
@@ -43,6 +47,7 @@ export default function AddShowModal({
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
   const [notes, setNotes] = useState('');
+  const [rating, setRating] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [duplicateShow, setDuplicateShow] = useState<DuplicateShow | null>(null);
@@ -96,6 +101,7 @@ export default function AddShowModal({
           state: state || null,
           country: country || null,
           notes: notes.trim() || null,
+          rating: rating || null,
           allowDuplicate,
         }),
       });
@@ -128,6 +134,7 @@ export default function AddShowModal({
       setState('');
       setCountry('');
       setNotes('');
+      setRating(null);
       setDuplicateShow(null);
       setShowDuplicateDialog(false);
       
@@ -273,6 +280,14 @@ export default function AddShowModal({
                   rows={4}
                 />
               </div>
+
+              {ratingSystemConfig && (
+                <RatingInput
+                  value={rating}
+                  config={ratingSystemConfig}
+                  onChange={setRating}
+                />
+              )}
             </div>
 
             <DialogFooter className="mt-6">

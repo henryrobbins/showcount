@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import type { UserShowWithDetails } from "@/types/show";
+import type { UserProfile } from "@/types/profile";
 
 import EditClient from "@/app/edit/EditClient";
 
@@ -15,6 +16,16 @@ async function EditPage() {
 
   // Fetch user_shows with joined central_shows and venues
   const supabase = await createClient();
+  
+  // Fetch user profile for rating config
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('clerk_user_id', userId)
+    .single();
+
+  const userProfile = profile as UserProfile | null;
+  
   const { data: userShows, error } = await supabase
     .from("user_shows")
     .select("*")
@@ -33,6 +44,7 @@ async function EditPage() {
     clerk_user_id: string;
     show_ids: string[];
     notes: string | null;
+    rating: string | null;
     created_at: string;
     updated_at: string;
   }>) {
@@ -60,6 +72,7 @@ async function EditPage() {
       clerk_user_id: userShow.clerk_user_id,
       show_ids: userShow.show_ids,
       notes: userShow.notes,
+      rating: userShow.rating,
       created_at: userShow.created_at,
       updated_at: userShow.updated_at,
       shows: centralShows.map((cs: any) => ({
@@ -87,7 +100,13 @@ async function EditPage() {
     redirect("/upload");
   }
 
-  return <EditClient initialShows={transformedShows} />;
+  // Extract rating system config if ratings are enabled
+  const ratingSystemConfig =
+    userProfile?.ratings_enabled && userProfile?.rating_system_config
+      ? userProfile.rating_system_config
+      : null;
+
+  return <EditClient initialShows={transformedShows} ratingSystemConfig={ratingSystemConfig} />;
 }
 
 export default EditPage;

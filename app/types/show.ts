@@ -17,6 +17,7 @@ export interface UserShow {
   clerk_user_id: string;
   show_ids: string[];
   notes: string | null;
+  rating: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,6 +50,7 @@ export interface CSVRow {
   state: string;
   country: string;
   notes?: string;
+  rating?: string;
 }
 
 export interface ParsedCSVData {
@@ -65,6 +67,7 @@ export interface ShowInsert {
   state: string | null;
   country: string | null;
   notes: string | null;
+  rating?: string | null;
 }
 
 export interface ValidationResult {

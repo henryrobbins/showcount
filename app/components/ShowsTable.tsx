@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { UserShowWithDetails } from '@/types/show';
+import type { RatingSystemConfig } from '@/types/rating';
 
 interface ShowsTableProps {
   shows: UserShowWithDetails[];
@@ -17,6 +18,7 @@ interface ShowsTableProps {
   selectedIds?: Set<string>;
   onRowClick?: (show: UserShowWithDetails) => void;
   onSelectionChange?: (id: string, selected: boolean) => void;
+  ratingSystemConfig?: RatingSystemConfig | null;
 }
 
 export default function ShowsTable({
@@ -25,6 +27,7 @@ export default function ShowsTable({
   selectedIds = new Set(),
   onRowClick,
   onSelectionChange,
+  ratingSystemConfig = null,
 }: ShowsTableProps) {
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
 
@@ -91,6 +94,8 @@ export default function ShowsTable({
     return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
 
+  const showRatings = ratingSystemConfig !== null;
+
   return (
     <div className="w-full border border-black">
       <table className="w-full font-mono text-sm">
@@ -105,6 +110,9 @@ export default function ShowsTable({
             <th className="text-left p-3 border-r border-black">City</th>
             <th className="text-left p-3 border-r border-black">State</th>
             <th className="text-left p-3 border-r border-black">Country</th>
+            {showRatings && (
+              <th className="text-left p-3 border-r border-black">Rating</th>
+            )}
             <th className="text-left p-3">Notes</th>
           </tr>
         </thead>
@@ -152,6 +160,9 @@ export default function ShowsTable({
                 <td className="p-3 border-r border-black">{venue?.city || '-'}</td>
                 <td className="p-3 border-r border-black">{venue?.state || '-'}</td>
                 <td className="p-3 border-r border-black">{venue?.country || '-'}</td>
+                {showRatings && (
+                  <td className="p-3 border-r border-black">{show.rating || '-'}</td>
+                )}
                 <td className="p-3">{renderNotes(show)}</td>
               </tr>
             );
