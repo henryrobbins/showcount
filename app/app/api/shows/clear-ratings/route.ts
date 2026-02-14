@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
 
 export async function POST() {
   try {
@@ -14,9 +15,13 @@ export async function POST() {
     const supabase = await createClient();
     
     // Update all user_shows to set rating to null
+    const updateData: Database['public']['Tables']['user_shows']['Update'] = {
+      rating: null
+    };
+    
     const { error } = await supabase
       .from("user_shows")
-      .update({ rating: null })
+      .update(updateData as never)
       .eq("clerk_user_id", userId);
 
     if (error) {

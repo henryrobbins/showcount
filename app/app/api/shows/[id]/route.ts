@@ -53,7 +53,7 @@ export async function PUT(
         .from('user_profiles')
         .select('ratings_enabled, rating_system_config')
         .eq('clerk_user_id', userId)
-        .single();
+        .single<Pick<Database['public']['Tables']['user_profiles']['Row'], 'ratings_enabled' | 'rating_system_config'>>();
 
       if (!profile?.ratings_enabled) {
         return NextResponse.json(

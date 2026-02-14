@@ -6,6 +6,7 @@ import { validateRatingValue } from '@/lib/rating-validation';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateVenueWithStatus } from '@/lib/venues';
 import type { ShowInsert } from '@/types/show';
+import type { Database } from '@/types/database';
 
 export interface UploadProgress {
   type: 'progress' | 'complete' | 'error';
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
       .from('user_profiles')
       .select('ratings_enabled, rating_system_config')
       .eq('clerk_user_id', userId)
-      .single();
+      .single<Pick<Database['public']['Tables']['user_profiles']['Row'], 'ratings_enabled' | 'rating_system_config'>>();
 
     // Validate all shows upfront
     for (const show of shows) {
