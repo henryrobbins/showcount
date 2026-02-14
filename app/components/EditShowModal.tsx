@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import RatingInput from '@/components/RatingInput';
+import VenueAutocomplete from '@/components/VenueAutocomplete';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -38,10 +39,40 @@ export default function EditShowModal({
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
+  const [selectedVenue, setSelectedVenue] = useState<{
+    name: string;
+    city: string | null;
+    state: string | null;
+    country: string;
+    formattedAddress: string;
+  } | null>(null);
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const handleVenueSelect = (place: {
+    name: string;
+    city: string | null;
+    state: string | null;
+    country: string;
+    placeId: string;
+    formattedAddress: string;
+    latitude: number;
+    longitude: number;
+  }) => {
+    setSelectedVenue({
+      name: place.name,
+      city: place.city,
+      state: place.state,
+      country: place.country,
+      formattedAddress: place.formattedAddress,
+    });
+    setVenue(place.name);
+    setCity(place.city || '');
+    setState(place.state || '');
+    setCountry(place.country);
+  };
 
   // Populate form when show changes
   useEffect(() => {
@@ -53,6 +84,24 @@ export default function EditShowModal({
       setCity(firstShow.venue?.city || '');
       setState(firstShow.venue?.state || '');
       setCountry(firstShow.venue?.country || '');
+      
+      // Set selected venue for display
+      if (firstShow.venue) {
+        setSelectedVenue({
+          name: firstShow.venue.name,
+          city: firstShow.venue.city,
+          state: firstShow.venue.state,
+          country: firstShow.venue.country,
+          formattedAddress: [
+            firstShow.venue.city,
+            firstShow.venue.state,
+            firstShow.venue.country
+          ].filter(Boolean).join(', '),
+        });
+      } else {
+        setSelectedVenue(null);
+      }
+      
       setNotes(show.notes || '');
       setRating(show.rating || null);
       setError('');
@@ -188,42 +237,12 @@ export default function EditShowModal({
             </div>
 
             <div>
-              <Label htmlFor="venue">Venue</Label>
-              <Input
-                id="venue"
-                value={venue}
-                onChange={(e) => setVenue(e.target.value)}
-                className="font-mono border-black"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="font-mono border-black"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="state">State</Label>
-              <Input
-                id="state"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                className="font-mono border-black"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="font-mono border-black"
+              <Label>Venue</Label>
+              <VenueAutocomplete
+                onSelect={handleVenueSelect}
+                initialValue={venue}
+                className="font-mono border-black px-3 py-2 rounded-md w-full"
+                placeholder="Search for a venue..."
               />
             </div>
 

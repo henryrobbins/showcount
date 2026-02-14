@@ -38,3 +38,20 @@ variable "supabase_database_password" {
   type        = string
   sensitive   = true
 }
+
+variable "gcp_project_id" {
+  description = "The GCP project ID where resources will be created"
+  type        = string
+}
+
+variable "gcp_region" {
+  description = "The default GCP region for resources"
+  type        = string
+  default     = "us-central1"
+}
+
+variable "gcp_zone" {
+  description = "The default GCP zone for resources"
+  type        = string
+  default     = "us-central1-a"
+}

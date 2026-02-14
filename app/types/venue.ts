@@ -25,3 +25,20 @@ export interface OSMSearchResult {
     country_code?: string;
   };
 }
+
+export interface GoogleMapsGeocodingResult {
+  place_id: string;
+  formatted_address: string;
+  geometry: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+  address_components: Array<{
+    long_name: string;
+    short_name: string;
+    types: string[];
+  }>;
+  partial_match?: boolean;
+}

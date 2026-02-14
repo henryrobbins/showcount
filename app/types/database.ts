@@ -102,6 +102,8 @@ export interface Database {
           longitude: number | null;
           osm_place_id: string | null;
           osm_display_name: string | null;
+          google_place_id: string | null;
+          google_formatted_address: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -115,6 +117,8 @@ export interface Database {
           longitude?: number | null;
           osm_place_id?: string | null;
           osm_display_name?: string | null;
+          google_place_id?: string | null;
+          google_formatted_address?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -128,6 +132,8 @@ export interface Database {
           longitude?: number | null;
           osm_place_id?: string | null;
           osm_display_name?: string | null;
+          google_place_id?: string | null;
+          google_formatted_address?: string | null;
           created_at?: string;
           updated_at?: string;
         };
