@@ -40,7 +40,7 @@ async function PlaceStatsPage({ params }: PlaceStatsPageProps) {
   }
 
   // Collect all show_ids
-  const allShowIds = userShows.flatMap((us) => us.show_ids || []);
+  const allShowIds = userShows.flatMap((us: any) => us.show_ids || []);
 
   if (allShowIds.length === 0) {
     return (
@@ -53,22 +53,32 @@ async function PlaceStatsPage({ params }: PlaceStatsPageProps) {
     );
   }
 
-  // Fetch all central shows with venue data
-  const { data: centralShows } = await supabase
-    .from('central_shows')
-    .select(`
-      id,
-      venues:venue_id (city, state, country)
-    `)
-    .in('id', allShowIds);
+  // Fetch all central shows with venue data in batches to avoid URI too long errors
+  const BATCH_SIZE = 100;
+  const allCentralShows: Array<{ id: string; venues: { city: string | null; state: string | null; country: string | null } | null }> = [];
+  
+  for (let i = 0; i < allShowIds.length; i += BATCH_SIZE) {
+    const batch = allShowIds.slice(i, i + BATCH_SIZE);
+    const { data: centralShows } = await supabase
+      .from('central_shows')
+      .select(`
+        id,
+        venues:venue_id (city, state, country)
+      `)
+      .in('id', batch);
+    
+    if (centralShows) {
+      allCentralShows.push(...(centralShows as any));
+    }
+  }
 
   // Count by city, state, and country
   const cityCounts = new Map<string, number>();
   const stateCounts = new Map<string, number>();
   const countryCounts = new Map<string, number>();
 
-  for (const show of centralShows || []) {
-    const venue = (show as any).venues;
+  for (const show of allCentralShows) {
+    const venue = show.venues;
     if (!venue) continue;
 
     if (venue.city) {

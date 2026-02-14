@@ -40,7 +40,7 @@ async function DateStatsPage({ params }: DateStatsPageProps) {
   }
 
   // Collect all show_ids
-  const allShowIds = userShows.flatMap((us) => us.show_ids || []);
+  const allShowIds = userShows.flatMap((us: any) => us.show_ids || []);
 
   if (allShowIds.length === 0) {
     return (
@@ -53,11 +53,21 @@ async function DateStatsPage({ params }: DateStatsPageProps) {
     );
   }
 
-  // Fetch all central shows with dates
-  const { data: centralShows } = await supabase
-    .from("central_shows")
-    .select("date")
-    .in("id", allShowIds);
+  // Fetch all central shows with dates in batches to avoid URI too long errors
+  const BATCH_SIZE = 100;
+  const allCentralShows: Array<{ date: string }> = [];
+  
+  for (let i = 0; i < allShowIds.length; i += BATCH_SIZE) {
+    const batch = allShowIds.slice(i, i + BATCH_SIZE);
+    const { data: centralShows } = await supabase
+      .from("central_shows")
+      .select("date")
+      .in("id", batch);
+    
+    if (centralShows) {
+      allCentralShows.push(...centralShows);
+    }
+  }
 
   // Count by year, month, and day of week
   const yearCounts = new Map<string, number>();
@@ -89,7 +99,7 @@ async function DateStatsPage({ params }: DateStatsPageProps) {
     "Saturday",
   ];
 
-  for (const show of centralShows || []) {
+  for (const show of allCentralShows) {
     if (!show.date) continue;
 
     const date = new Date(show.date);

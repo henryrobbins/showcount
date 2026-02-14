@@ -23,9 +23,9 @@ async function ArtistStatsPage({ params }: ArtistStatsPageProps) {
 
   // Fetch user_shows with joined central_shows
   const supabase = await createClient();
-  const { data: userShows } = await supabase
+  const { data: userShows, error: userShowsError } = await supabase
     .from('user_shows')
-    .select('show_ids')
+    .select('*')
     .eq('clerk_user_id', user.id);
 
   if (!userShows || userShows.length === 0) {
@@ -38,7 +38,7 @@ async function ArtistStatsPage({ params }: ArtistStatsPageProps) {
   }
 
   // Collect all show_ids
-  const allShowIds = userShows.flatMap((us) => us.show_ids || []);
+  const allShowIds = userShows.flatMap((us: any) => us.show_ids || []);
 
   if (allShowIds.length === 0) {
     return (
@@ -49,15 +49,30 @@ async function ArtistStatsPage({ params }: ArtistStatsPageProps) {
     );
   }
 
-  // Fetch all central shows
-  const { data: centralShows } = await supabase
-    .from('central_shows')
-    .select('artist')
-    .in('id', allShowIds);
+  // Fetch all central shows in batches to avoid URI too long errors
+  const BATCH_SIZE = 100;
+  const allCentralShows: Array<{ artist: string }> = [];
+  
+  for (let i = 0; i < allShowIds.length; i += BATCH_SIZE) {
+    const batch = allShowIds.slice(i, i + BATCH_SIZE);
+    const { data: centralShows, error: centralShowsError } = await supabase
+      .from('central_shows')
+      .select('artist')
+      .in('id', batch);
+    
+    if (centralShowsError) {
+      console.error('Error fetching central shows batch:', centralShowsError);
+      continue;
+    }
+    
+    if (centralShows) {
+      allCentralShows.push(...centralShows);
+    }
+  }
 
   // Count shows per artist
   const artistCounts = new Map<string, number>();
-  for (const show of centralShows || []) {
+  for (const show of allCentralShows) {
     const count = artistCounts.get(show.artist) || 0;
     artistCounts.set(show.artist, count + 1);
   }

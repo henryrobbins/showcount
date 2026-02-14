@@ -38,7 +38,7 @@ async function VenueStatsPage({ params }: VenueStatsPageProps) {
   }
 
   // Collect all show_ids
-  const allShowIds = userShows.flatMap((us) => us.show_ids || []);
+  const allShowIds = userShows.flatMap((us: any) => us.show_ids || []);
 
   if (allShowIds.length === 0) {
     return (
@@ -49,24 +49,34 @@ async function VenueStatsPage({ params }: VenueStatsPageProps) {
     );
   }
 
-  // Fetch all central shows with venue data
-  const { data: centralShows } = await supabase
-    .from('central_shows')
-    .select(`
-      venue_id,
-      venues:venue_id (name, city)
-    `)
-    .in('id', allShowIds);
+  // Fetch all central shows with venue data in batches to avoid URI too long errors
+  const BATCH_SIZE = 100;
+  const allCentralShows: Array<{ venue_id: string; venues: { name: string; city: string | null } | null }> = [];
+  
+  for (let i = 0; i < allShowIds.length; i += BATCH_SIZE) {
+    const batch = allShowIds.slice(i, i + BATCH_SIZE);
+    const { data: centralShows } = await supabase
+      .from('central_shows')
+      .select(`
+        venue_id,
+        venues:venue_id (name, city)
+      `)
+      .in('id', batch);
+    
+    if (centralShows) {
+      allCentralShows.push(...(centralShows as any));
+    }
+  }
 
   // Count shows per venue (with city for disambiguation)
   const venueCountsMap = new Map<string, { name: string; city: string; count: number }>();
   
-  for (const show of centralShows || []) {
-    const venue = (show as any).venues;
+  for (const show of allCentralShows) {
+    const venue = show.venues;
     if (!venue || !venue.name) continue;
 
     // Use venue_id as key for uniqueness
-    const key = (show as any).venue_id;
+    const key = show.venue_id;
     const existing = venueCountsMap.get(key);
     
     if (existing) {
