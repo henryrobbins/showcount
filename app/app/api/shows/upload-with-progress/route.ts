@@ -8,6 +8,10 @@ import { getOrCreateVenueWithStatus } from '@/lib/venues';
 import type { ShowInsert } from '@/types/show';
 import type { Database } from '@/types/database';
 
+// Increase timeout for CSV uploads (Vercel default is 10s)
+// Hobby: max 10s, Pro: max 60s, Enterprise: max 300s
+export const maxDuration = 60;
+
 export interface UploadProgress {
   type: 'progress' | 'complete' | 'error';
   currentShow?: number;
@@ -101,15 +105,23 @@ export async function POST(request: Request) {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
+        console.log(`[Upload] Starting upload for user ${userId} with ${shows.length} shows`);
+        
         try {
+          const BATCH_SIZE = 10; // Insert in batches to avoid timeout issues
           const userShowsToInsert: any[] = [];
           
           // Cache venues as we process them to avoid duplicate lookups
           const venueCache = new Map<string, { id: string | null; status: string }>();
+          
+          // Keep track of total inserted
+          let totalInserted = 0;
 
           // Process each show and send updates in real-time
           for (let i = 0; i < shows.length; i++) {
             const show = shows[i];
+            console.log(`[Upload] Processing show ${i + 1}/${shows.length}: ${show.date} - ${show.artists.join(', ')}`);
+            
             let venueId: string | null = null;
             let venueStatus: UploadProgress['venueStatus'] = 'none';
             
@@ -143,6 +155,7 @@ export async function POST(request: Request) {
 
             if (!venueId) {
               // Skip shows without venues
+              console.log(`[Upload] Skipping show ${i + 1} - no venue ID`);
               continue;
             }
 
@@ -191,38 +204,51 @@ export async function POST(request: Request) {
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify(progressUpdate)}\n\n`)
             );
+            
+            // Insert in batches to prevent timeout issues
+            if (userShowsToInsert.length >= BATCH_SIZE || i === shows.length - 1) {
+              console.log(`[Upload] Inserting batch of ${userShowsToInsert.length} user_shows`);
+              const insertSupabase = await createClient();
+              const { data, error } = await insertSupabase
+                .from('user_shows')
+                .insert(userShowsToInsert as any)
+                .select();
+
+              if (error) {
+                console.error('[Upload] Batch insert error:', error);
+                const errorUpdate: UploadProgress = {
+                  type: 'error',
+                  error: `Failed to save shows to database: ${error.message || 'Unknown error'}`,
+                };
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify(errorUpdate)}\n\n`)
+                );
+                controller.close();
+                return;
+              }
+              
+              totalInserted += data.length;
+              console.log(`[Upload] Batch inserted ${data.length} user_shows. Total: ${totalInserted}`);
+              
+              // Clear the batch
+              userShowsToInsert.length = 0;
+            }
           }
 
-          // Insert all user_shows
-          const insertSupabase = await createClient();
-          const { data, error } = await insertSupabase
-            .from('user_shows')
-            .insert(userShowsToInsert as any)
-            .select();
-
-          if (error) {
-            console.error('Supabase error:', error);
-            const errorUpdate: UploadProgress = {
-              type: 'error',
-              error: 'Failed to save shows to database',
-            };
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(errorUpdate)}\n\n`)
-            );
-          } else {
-            // Send completion update
-            const completeUpdate: UploadProgress = {
-              type: 'complete',
-              message: `Successfully uploaded ${data.length} shows`,
-            };
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(completeUpdate)}\n\n`)
-            );
-          }
+          console.log(`[Upload] Successfully inserted total of ${totalInserted} user_shows for user ${userId}`);
+          // Send completion update
+          const completeUpdate: UploadProgress = {
+            type: 'complete',
+            message: `Successfully uploaded ${totalInserted} shows`,
+          };
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(completeUpdate)}\n\n`)
+          );
 
           controller.close();
         } catch (error) {
-          console.error('Upload error:', error);
+          console.error('[Upload] Upload error:', error);
+          console.error('[Upload] Error details:', error instanceof Error ? error.stack : JSON.stringify(error));
           const errorUpdate: UploadProgress = {
             type: 'error',
             error: error instanceof Error ? error.message : 'Internal server error',
