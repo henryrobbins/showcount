@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
-import { searchVenue, extractCity, extractState, extractCountry } from "@/lib/osm";
-import type { VenueSearchParams, VenueInsert } from "@/types/venue";
+import { searchVenue as searchVenueOSM, extractCity as extractCityOSM, extractState as extractStateOSM, extractCountry as extractCountryOSM } from "@/lib/osm";
+import { geocodeVenue, extractCity, extractState, extractCountry } from "@/lib/google-maps";
+import type { VenueSearchParams, VenueInsert, GoogleMapsGeocodingResult } from "@/types/venue";
 import type { Database } from "@/types/database";
 
 export type VenueStatus = 
   | "existing" 
-  | "created_with_osm" 
-  | "created_without_osm" 
+  | "created_with_geocode"
+  | "created_without_geocode" 
   | "failed";
 
 export interface VenueResult {
@@ -64,41 +65,48 @@ export async function findVenue(
 }
 
 /**
- * Create a new venue by fetching data from OpenStreetMap
+ * Create a new venue by fetching data from Google Maps
  */
-export async function createVenueFromOSM(
+export async function createVenueFromGoogleMaps(
   params: VenueSearchParams
 ): Promise<Database["public"]["Tables"]["venues"]["Row"] | null> {
   const { name, city, state, country } = params;
 
   try {
-    // Search OSM for the venue
-    const results = await searchVenue(name, city, country);
+    // Search Google Maps for the venue
+    const results = await geocodeVenue(params);
 
     if (results.length === 0) {
-      console.log("No OSM results found for venue:", params);
-      // Create venue without OSM data
-      return await createVenueWithoutOSM(params);
+      console.log("No Google Maps results found for venue:", params);
+      // Create venue without geocode data
+      return await createVenueWithoutGeocode(params);
     }
 
     // Take the top result
     const topResult = results[0];
 
-    // Extract location data
-    const osmCity = extractCity(topResult.address);
-    const osmState = extractState(topResult.address);
-    const osmCountry = extractCountry(topResult.address);
+    // Log warning if partial match
+    if (topResult.partial_match) {
+      console.warn(`Partial match for venue: ${name}`, topResult.formatted_address);
+    }
 
-    // Use provided values, fall back to OSM values
+    // Extract location data
+    const gmapsCity = extractCity(topResult.address_components);
+    const gmapsState = extractState(topResult.address_components);
+    const gmapsCountry = extractCountry(topResult.address_components);
+
+    // Use provided values, fall back to Google Maps values
     const venueInsert: VenueInsert = {
       name,
-      city: city || osmCity,
-      state: state || osmState,
-      country: country || osmCountry || "Unknown",
-      latitude: topResult.lat ? Number.parseFloat(topResult.lat) : null,
-      longitude: topResult.lon ? Number.parseFloat(topResult.lon) : null,
-      osm_place_id: topResult.place_id,
-      osm_display_name: topResult.display_name,
+      city: city || gmapsCity,
+      state: state || gmapsState,
+      country: country || gmapsCountry || "Unknown",
+      latitude: topResult.geometry.location.lat,
+      longitude: topResult.geometry.location.lng,
+      google_place_id: topResult.place_id,
+      google_formatted_address: topResult.formatted_address,
+      osm_place_id: null,
+      osm_display_name: null,
     };
 
     // Check if venue already exists (race condition protection)
@@ -128,15 +136,15 @@ export async function createVenueFromOSM(
 
     return data;
   } catch (error) {
-    console.error("Error creating venue from OSM:", error);
-    return await createVenueWithoutOSM(params);
+    console.error("Error creating venue from Google Maps:", error);
+    return await createVenueWithoutGeocode(params);
   }
 }
 
 /**
- * Create a venue without OSM data (fallback when OSM fails)
+ * Create a venue without geocode data (fallback when Google Maps fails)
  */
-async function createVenueWithoutOSM(
+async function createVenueWithoutGeocode(
   params: VenueSearchParams
 ): Promise<Database["public"]["Tables"]["venues"]["Row"] | null> {
   const { name, city, state, country } = params;
@@ -157,6 +165,8 @@ async function createVenueWithoutOSM(
       longitude: null,
       osm_place_id: null,
       osm_display_name: null,
+      google_place_id: null,
+      google_formatted_address: null,
     };
 
     const supabase = await createClient();
@@ -167,13 +177,13 @@ async function createVenueWithoutOSM(
       .single();
 
     if (error) {
-      console.error("Error inserting venue without OSM:", error);
+      console.error("Error inserting venue without geocode:", error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error("Error creating venue without OSM:", error);
+    console.error("Error creating venue without geocode:", error);
     return null;
   }
 }
@@ -207,8 +217,8 @@ export async function getOrCreateVenue(
     return existing.id;
   }
 
-  // Create new venue with OSM data
-  const newVenue = await createVenueFromOSM(params);
+  // Create new venue with Google Maps data
+  const newVenue = await createVenueFromGoogleMaps(params);
   if (newVenue) {
     return newVenue.id;
   }
@@ -247,29 +257,29 @@ export async function getOrCreateVenueWithStatus(
     };
   }
 
-  // Try to create venue with OSM data
+  // Try to create venue with Google Maps data
   try {
-    const results = await searchVenue(name, city, country);
+    const results = await geocodeVenue(params);
 
     if (results.length > 0) {
-      // OSM data found
-      const newVenue = await createVenueFromOSM(params);
+      // Google Maps data found
+      const newVenue = await createVenueFromGoogleMaps(params);
       if (newVenue) {
         return {
           venueId: newVenue.id,
-          status: "created_with_osm",
+          status: "created_with_geocode",
           venue: newVenue,
         };
       }
     }
 
-    // No OSM data found, create without coordinates
-    const venueWithoutOSM = await createVenueWithoutOSM(params);
-    if (venueWithoutOSM) {
+    // No Google Maps data found, create without coordinates
+    const venueWithoutGeocode = await createVenueWithoutGeocode(params);
+    if (venueWithoutGeocode) {
       return {
-        venueId: venueWithoutOSM.id,
-        status: "created_without_osm",
-        venue: venueWithoutOSM,
+        venueId: venueWithoutGeocode.id,
+        status: "created_without_geocode",
+        venue: venueWithoutGeocode,
       };
     }
   } catch (error) {

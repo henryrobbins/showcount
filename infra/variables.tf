@@ -38,3 +38,15 @@ variable "supabase_database_password" {
   type        = string
   sensitive   = true
 }
+
+variable "google_maps_api_key" {
+  description = "Google Maps Platform API key (server-side)"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_maps_api_key_client" {
+  description = "Google Maps Platform API key (client-side)"
+  type        = string
+  sensitive   = true
+}

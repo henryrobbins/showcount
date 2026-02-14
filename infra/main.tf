@@ -92,3 +92,20 @@ resource "vercel_project_environment_variable" "supabase_anon_key" {
   target     = ["production", "preview"]
   sensitive  = true
 }
+
+# Google Maps API Environment Variables
+resource "vercel_project_environment_variable" "google_maps_api_key" {
+  project_id = vercel_project.showcount.id
+  key        = "GOOGLE_MAPS_API_KEY"
+  value      = var.google_maps_api_key
+  target     = ["production", "preview"]
+  sensitive  = true
+}
+
+resource "vercel_project_environment_variable" "google_maps_api_key_client" {
+  project_id = vercel_project.showcount.id
+  key        = "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"
+  value      = var.google_maps_api_key_client
+  target     = ["production", "preview"]
+  sensitive  = true
+}
