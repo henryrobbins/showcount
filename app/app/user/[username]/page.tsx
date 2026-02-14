@@ -10,6 +10,9 @@ import { createClient } from '@/lib/supabase/server';
 import type { UserShowWithDetails } from '@/types/show';
 import type { UserProfile } from '@/types/profile';
 
+// Increase timeout for profile pages with many shows
+export const maxDuration = 60;
+
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
 }
@@ -56,7 +59,41 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
   }
 
   // Transform the data to UserShowWithDetails format
-  // We need to manually fetch central shows because Supabase doesn't support array joins well
+  // Collect all show_ids from all user_shows to fetch in batched queries
+  const allShowIds = (userShows || [])
+    .flatMap((show: any) => show.show_ids || [])
+    .filter((id): id is string => !!id);
+
+  // Fetch all central shows with venue data in BATCHED queries to avoid URL length limits
+  const centralShowsMap = new Map<string, any>();
+  
+  if (allShowIds.length > 0) {
+    // Batch IDs to avoid URL length limits (PostgreSQL UUID is 36 chars + separators)
+    // Safe batch size of 100 IDs keeps URL under 8KB
+    const BATCH_SIZE = 100;
+    
+    for (let i = 0; i < allShowIds.length; i += BATCH_SIZE) {
+      const batch = allShowIds.slice(i, i + BATCH_SIZE);
+      
+      const { data: centralShows, error: centralError } = await supabase
+        .from('central_shows')
+        .select(`
+          *,
+          venues:venue_id (*)
+        `)
+        .in('id', batch);
+
+      if (centralError) {
+        console.error('Error fetching central shows batch:', centralError);
+      } else if (centralShows) {
+        // Add to map for quick lookup
+        for (const cs of centralShows) {
+          centralShowsMap.set((cs as any).id, cs);
+        }
+      }
+    }
+  }
+
   const transformedShows: UserShowWithDetails[] = [];
 
   for (const userShow of (userShows || []) as Array<{
@@ -72,17 +109,12 @@ async function UserProfilePage({ params }: UserProfilePageProps) {
       continue;
     }
 
-    // Fetch central shows with venue data for this user show
-    const { data: centralShows, error: centralError } = await supabase
-      .from('central_shows')
-      .select(`
-        *,
-        venues:venue_id (*)
-      `)
-      .in('id', userShow.show_ids);
+    // Get central shows from the map instead of querying
+    const centralShows = userShow.show_ids
+      .map(id => centralShowsMap.get(id))
+      .filter((cs): cs is any => !!cs);
 
-    if (centralError) {
-      console.error('Error fetching central shows:', centralError);
+    if (centralShows.length === 0) {
       continue;
     }
 
