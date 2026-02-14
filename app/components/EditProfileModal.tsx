@@ -45,6 +45,7 @@ export default function EditProfileModal({
   const [ratingsEnabled, setRatingsEnabled] = useState(false);
   const [ratingSystemType, setRatingSystemType] = useState<RatingSystemType | null>(null);
   const [ratingSystemConfig, setRatingSystemConfig] = useState<RatingSystemConfigType | null>(null);
+  const [originalRatingSystemType, setOriginalRatingSystemType] = useState<RatingSystemType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -65,6 +66,7 @@ export default function EditProfileModal({
       setRatingsEnabled(profile.ratings_enabled || false);
       setRatingSystemType(profile.rating_system_type || null);
       setRatingSystemConfig(profile.rating_system_config || null);
+      setOriginalRatingSystemType(profile.rating_system_type || null);
       setError('');
     } else {
       // Reset for new profile
@@ -82,6 +84,7 @@ export default function EditProfileModal({
       setRatingsEnabled(false);
       setRatingSystemType(null);
       setRatingSystemConfig(null);
+      setOriginalRatingSystemType(null);
       setError('');
     }
   }, [profile]);
@@ -104,6 +107,22 @@ export default function EditProfileModal({
     setIsSubmitting(true);
 
     try {
+      // Check if user is switching rating systems
+      const isSwitchingSystem = originalRatingSystemType !== null && 
+                                ratingSystemType !== null && 
+                                originalRatingSystemType !== ratingSystemType;
+
+      // If switching systems, clear all ratings first
+      if (isSwitchingSystem) {
+        const clearResponse = await fetch('/api/shows/clear-ratings', {
+          method: 'POST',
+        });
+
+        if (!clearResponse.ok) {
+          throw new Error('Failed to clear existing ratings');
+        }
+      }
+
       const response = await fetch('/api/profile', {
         method: 'POST',
         headers: {
@@ -339,6 +358,7 @@ export default function EditProfileModal({
                   type={ratingSystemType}
                   config={ratingSystemConfig}
                   onChange={handleRatingConfigChange}
+                  originalType={originalRatingSystemType}
                 />
               )}
             </div>

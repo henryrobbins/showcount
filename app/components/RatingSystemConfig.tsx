@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,16 +17,21 @@ interface RatingSystemConfigProps {
   type: RatingSystemType | null;
   config: RatingSystemConfig | null;
   onChange: (type: RatingSystemType, config: RatingSystemConfig) => void;
+  originalType: RatingSystemType | null;
 }
 
 export default function RatingSystemConfig({
   type,
   config,
   onChange,
+  originalType,
 }: RatingSystemConfigProps) {
   const [selectedType, setSelectedType] = useState<RatingSystemType>(
     type || 'ordered_list'
   );
+  
+  // Check if user is switching from one rating system to another
+  const isSwitchingSystem = originalType !== null && selectedType !== originalType;
 
   // Ordered list state
   const [orderedListValues, setOrderedListValues] = useState<string>('');
@@ -74,6 +78,39 @@ export default function RatingSystemConfig({
     }
   }, [config]);
 
+  // Auto-apply when ordered list values change
+  useEffect(() => {
+    if (selectedType === 'ordered_list' && orderedListValues) {
+      const timer = setTimeout(() => {
+        applyConfiguration();
+      }, 500); // Debounce for 500ms
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderedListValues, selectedType]);
+
+  // Auto-apply when numeric range values change
+  useEffect(() => {
+    if (selectedType === 'numeric_range') {
+      const timer = setTimeout(() => {
+        applyConfiguration();
+      }, 500); // Debounce for 500ms
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [numericMin, numericMax, numericDirection, numericAllowDecimals, selectedType]);
+
+  // Auto-apply when numeric unbounded values change
+  useEffect(() => {
+    if (selectedType === 'numeric_unbounded') {
+      const timer = setTimeout(() => {
+        applyConfiguration();
+      }, 500); // Debounce for 500ms
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unboundedDirection, unboundedAllowDecimals, selectedType]);
+
   const handleTypeChange = (newType: RatingSystemType) => {
     setSelectedType(newType);
     setValidationError('');
@@ -82,15 +119,19 @@ export default function RatingSystemConfig({
     if (newType === 'ordered_list' && !orderedListValues) {
       setOrderedListValues('*****, ****, ***, **, *');
     }
+    
+    // Apply configuration immediately when type changes
+    applyConfiguration(newType);
   };
 
-  const handleApply = () => {
+  const applyConfiguration = (typeToUse?: RatingSystemType) => {
+    const currentType = typeToUse || selectedType;
     setValidationError('');
 
     try {
       let newConfig: RatingSystemConfig;
 
-      switch (selectedType) {
+      switch (currentType) {
         case 'ordered_list': {
           const values = orderedListValues
             .split(',')
@@ -136,7 +177,7 @@ export default function RatingSystemConfig({
           return;
       }
 
-      onChange(selectedType, newConfig);
+      onChange(currentType, newConfig);
     } catch (error) {
       setValidationError('Invalid configuration');
     }
@@ -144,6 +185,12 @@ export default function RatingSystemConfig({
 
   return (
     <div className="space-y-4 border border-black p-4">
+      {isSwitchingSystem && (
+        <div className="border border-red-600 bg-red-50 p-3 text-sm font-mono text-red-900">
+          ⚠️ Warning: Changing the rating system will delete all existing ratings
+        </div>
+      )}
+      
       <div>
         <Label className="font-mono text-sm mb-2 block">Rating System Type</Label>
         <div className="space-y-2">
@@ -343,14 +390,6 @@ export default function RatingSystemConfig({
           {validationError}
         </p>
       )}
-
-      <Button
-        onClick={handleApply}
-        variant="outline"
-        className="w-full font-mono border-black hover:bg-black hover:text-white"
-      >
-        Apply Configuration
-      </Button>
     </div>
   );
 }
