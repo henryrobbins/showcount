@@ -39,14 +39,19 @@ variable "supabase_database_password" {
   sensitive   = true
 }
 
-variable "google_maps_api_key" {
-  description = "Google Maps Platform API key (server-side)"
+variable "gcp_project_id" {
+  description = "The GCP project ID where resources will be created"
   type        = string
-  sensitive   = true
 }
 
-variable "google_maps_api_key_client" {
-  description = "Google Maps Platform API key (client-side)"
+variable "gcp_region" {
+  description = "The default GCP region for resources"
   type        = string
-  sensitive   = true
+  default     = "us-central1"
+}
+
+variable "gcp_zone" {
+  description = "The default GCP zone for resources"
+  type        = string
+  default     = "us-central1-a"
 }

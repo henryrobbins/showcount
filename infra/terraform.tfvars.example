@@ -14,11 +14,9 @@ supabase_access_token = "sbp_your_access_token_here"
 supabase_organization_id = "your_organization_id_here"
 supabase_database_password = "your_secure_database_password_here"
 
-# Google Maps Platform
-# Get these from: https://console.cloud.google.com/google/maps-apis
-# Enable: Geocoding API, Places API (new), Maps JavaScript API
-# Create two API keys with appropriate restrictions:
-# - Server key: HTTP referrer or IP restrictions
-# - Client key: HTTP referrer restrictions for your domains
-google_maps_api_key = "your_server_api_key_here"
-google_maps_api_key_client = "your_client_api_key_here"
+# Google Cloud Platform
+# API keys will be automatically created by Terraform
+# Get project ID from: https://console.cloud.google.com/
+gcp_project_id = "your-gcp-project-id"
+gcp_region = "us-central1"
+gcp_zone = "us-central1-a"
