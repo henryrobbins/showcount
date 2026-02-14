@@ -251,20 +251,14 @@ export default function AddShowModal({
                 </div>
               </div>
 
-              <div>
-                <Label>Venue</Label>
-                <VenueAutocomplete
-                  onSelect={handleVenueSelect}
-                  className="font-mono border-black px-3 py-2 rounded-md w-full"
-                  placeholder="Search for a venue..."
-                />
-                {selectedVenue && (
-                  <div className="mt-2 text-sm border border-black p-2 bg-gray-50">
-                    <div className="font-medium">{selectedVenue.name}</div>
-                    <div className="text-gray-600">{selectedVenue.formattedAddress}</div>
-                  </div>
-                )}
-              </div>
+            <div>
+              <Label>Venue</Label>
+              <VenueAutocomplete
+                onSelect={handleVenueSelect}
+                className="font-mono border-black px-3 py-2 rounded-md w-full"
+                placeholder="Search for a venue..."
+              />
+            </div>
 
               <div>
                 <div className="flex justify-between items-center mb-2">

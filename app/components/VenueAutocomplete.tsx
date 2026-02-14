@@ -80,7 +80,7 @@ function VenueAutocomplete({
   }, [onSelect]);
   
   return (
-    <div>
+    <div className="relative">
       <input
         ref={inputRef}
         type="text"

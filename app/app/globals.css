@@ -35,3 +35,41 @@
     @apply bg-background text-foreground font-mono;
   }
 }
+
+/* Google Maps autocomplete dropdown */
+.pac-container {
+  z-index: 9999 !important;
+  font-family: 'Monaco', 'Courier New', monospace;
+  border: 2px solid black !important;
+  border-top: 1px solid black !important;
+  box-shadow: none !important;
+  pointer-events: auto !important;
+}
+
+/* Style autocomplete items to match design */
+.pac-item {
+  font-family: 'Monaco', 'Courier New', monospace !important;
+  border-top: 1px solid #e5e5e5 !important;
+  padding: 8px !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.pac-item:hover {
+  background-color: #f5f5f5 !important;
+}
+
+/* Allow clicking through when pac-item is hovered */
+.pac-item-query {
+  pointer-events: auto !important;
+}
+
+/* Hide Google logo and branding */
+.pac-logo::after,
+.hdpi.pac-logo::after {
+  display: none !important;
+}
+
+.pac-container::after {
+  display: none !important;
+}
