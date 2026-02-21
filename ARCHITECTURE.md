@@ -23,3 +23,12 @@
 - **Python Version:** >=3.11
 - **Package Management:** uv
 
+### Agent Service (`services/agent/`)
+
+AI-powered show parsing service. Accepts file uploads (`.txt`, `.md`, `.csv`, `.xlsx`) and uses Claude to parse unstructured concert attendance data into structured show records.
+
+- **Endpoint:** `POST /parse` — SSE stream of parsed/resolved shows
+- **AI:** Anthropic Claude (Sonnet for parsing, Haiku for date normalization)
+- **External APIs:** Google Maps Geocoding (venue resolution)
+- **Database:** Supabase (venue and central show find/create)
+

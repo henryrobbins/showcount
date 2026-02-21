@@ -123,12 +123,42 @@ The app uses Clerk for authentication. Since Clerk and Supabase are separate aut
 
 This approach is simpler than integrating Clerk JWT with Supabase RLS and works well for this use case.
 
+## Agent Service (`services/agent/`)
+
+### Setup
+
+```bash
+cd services/agent
+cp .env.example .env  # Fill in API keys
+make install           # Install dependencies with uv
+```
+
+### Running
+
+```bash
+make dev        # Start dev server on port 8000
+make test       # Run unit tests
+make lint       # Run ruff linter
+make typecheck  # Run mypy
+```
+
+### Testing Manually
+
+```bash
+curl -X POST http://localhost:8000/parse \
+  -F "file=@../../data/BurberryToothbrush.txt" \
+  -F "prompt=all shows from 2025"
+```
+
 ## Makefile Conventions
 
 Each service has its own Makefile with common targets:
 - `make dev` - Start development server
-- `make build` - Build for production
-- `make clean` - Clean build artifacts
+- `make install` - Install dependencies
+- `make lint` - Run linter
+- `make format` - Run formatter
+- `make typecheck` - Run type checker
+- `make test` - Run tests
 - Additional targets added as needed
 
 ## Future Topics
